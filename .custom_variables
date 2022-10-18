@@ -1,0 +1,119 @@
+#!/bin/bash
+# Add and uncomment the following line to bashrc or zshrc as appropriate
+# [[ -f "$HOME/dotfiles/.custom_variables" ]] && . "$HOME//dotfiles/.custom_variables"
+
+# Environment variables
+export PATH="$HOME/.local/bin:$PATH"
+export JAVA_HOME="/opt/openjdk-8"
+export PATH="$JAVA_HOME/bin:$PATH"
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"                   # This loads nvm
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion" # This loads nvm bash_completion
+. "$HOME/.cargo/env"
+export PATH="/snap/bin:$PATH"
+export EDITOR="nvim"
+
+if [ "$(readlink /proc/$$/exe)" = "/usr/bin/bash" ]; then
+  source /usr/share/doc/fzf/examples/key-bindings.bash
+  source /usr/share/doc/fzf/examples/completion.bash
+  eval "$(starship init bash)"
+elif [ "$(readlink /proc/$$/exe)" = "/usr/bin/zsh" ]; then
+  source /usr/share/doc/fzf/examples/key-bindings.zsh
+  source /usr/share/doc/fzf/examples/completion.zsh
+  source /usr/share/zsh-theme-powerlevel10k/powerlevel10k.zsh-theme
+  source /usr/share/zsh-autosuggestions/zsh-autosuggestions.zsh
+  source /usr/share/zsh-git/git.plugin.zsh
+  source /usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+fi
+
+# Aliases
+if [ "$(
+  which lsd &>/dev/null
+  echo $?
+)" -eq 0 ]; then
+  alias ls='lsd --group-dirs=first'
+  alias ll='ls -lh'
+  alias la='ls -a'
+  alias l='lsd'
+  alias lla='ls -lha'
+  alias lt='ls --tree'
+else
+  alias ll='ls -lh'
+  alias la='ls -A'
+  alias l='ls -CF'
+  alias lla='ls -lah'
+  alias lt='ls --tree'
+fi
+
+if [ "$(
+  which kitty &>/dev/null
+  echo $?
+)" -eq 0 ]; then
+  alias icat="kitty +kitten icat"
+  alias d="kitty +kitten diff"
+fi
+
+if [ "$(
+  which batcat &>/dev/null
+  echo $?
+)" -eq 0 ]; then
+  alias cat='batcat'
+  alias catn='/bin/cat'
+  alias catnl='batcat --paging=never'
+fi
+
+# General updates
+update() {
+  version="$(nvm current)"
+  (
+    cd "$NVM_DIR"
+    git fetch --tags origin
+    git checkout $(git describe --abbrev=0 --tags --match "v[0-9]*" $(git rev-list --tags --max-count=1))
+  ) && \. "$NVM_DIR/nvm.sh"
+  echo "Checking for possible NVM updates..."
+  if [ ! "$(nvm ls-remote --no-colors | tail -n1 | awk '{print $2}')" = "$(nvm current)" ]; then
+    echo "NVM update found"
+    sleep 2
+    nvm install node
+    nvm reinstall-packages "$version"
+  fi
+
+  curl -LO https://github.com/neovim/neovim/releases/latest/download/nvim.appimage
+  if [ ! "$(md5sum /opt/neovim/nvim.appimage | awk '{print $1}')" = "$(md5sum "$HOME/nvim.appimage" | awk '{print $1}')" ]; then
+    echo "Neovim update found!"
+    sleep 2
+    chmod +x nvim.appimage
+    rm /opt/neovim/nvim.appimage
+    mv "$HOME/nvim.appimage" /opt/neovim/
+  else
+    rm nvim.appimage
+  fi
+
+  if [ -d "$HOME/.cargo" ]; then
+    rustup update
+    # # The construction process can take a long time depending on the capacity of the machine.
+    # It is convenient to ask before doing this action.
+    while true; do
+      echo -n "Update installed binaries by cargo? (y/n) -> " && read -r opt
+      if [ "$(echo "$opt" | awk '{print tolower($0)}')" = "y" ]; then
+        for bin in $(cargo install --list | awk '/^ / {print}' | tr -d ' '); do
+          cargo install "$bin" --force
+        done
+        break
+      elif [ "$(echo "$opt" | awk '{print tolower($0)}')" = "n" ]; then
+        break
+      fi
+    done
+  fi
+
+  if [ "$(
+    which apt &>/dev/null
+    echo $?
+  )" -eq 0 ]; then
+    echo ""Updating operating system...
+    sudo apt update && sudo apt upgrade
+    sudo apt autoremove
+    echo "Checking for snap package updates if they exist..."
+    if [[ -d /snap ]]; then sudo snap refresh; fi
+  fi
+}
