@@ -25,7 +25,7 @@ elif [ "$(readlink /proc/$$/exe)" = "/usr/bin/zsh" ]; then
   source /usr/share/doc/fzf/examples/completion.zsh
   source /usr/share/zsh-theme-powerlevel10k/powerlevel10k.zsh-theme
   source /usr/share/zsh-autosuggestions/zsh-autosuggestions.zsh
-  source /usr/share/zsh-git/git.plugin.zsh
+  source ~/.oh-my-zsh/plugins/git/git.plugin.zsh
   source /usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 fi
 
@@ -73,7 +73,7 @@ update() {
     git fetch --tags origin
     git checkout $(git describe --abbrev=0 --tags --match "v[0-9]*" $(git rev-list --tags --max-count=1))
   ) && \. "$NVM_DIR/nvm.sh"
-  echo "Checking for possible NVM updates..."
+  echo "Checking for possible nvm updates..."
   if [ ! "$(nvm ls-remote --no-colors | tail -n1 | awk '{print $2}')" = "$(nvm current)" ]; then
     echo "NVM update found"
     sleep 2
@@ -113,10 +113,19 @@ update() {
     which apt &>/dev/null
     echo $?
   )" -eq 0 ]; then
-    echo ""Updating operating system...
+    echo "Updating operating system..."
     sudo apt update && sudo apt upgrade
     sudo apt autoremove
     echo "Checking for snap package updates if they exist..."
-    if [[ -d /snap ]]; then sudo snap refresh; fi
+    [[ -d /snap ]] && sudo snap refresh
+  fi
+
+  local ohmz="$HOME/.oh-my-zsh"
+  if [[ -d $ohmz ]]; then
+    cd "$ohmz" || return 1
+    echo "Checking for updates to oh my zsh framework..."
+    sleep 2
+    git pull --rebase
+    cd || return 1
   fi
 }
