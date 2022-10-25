@@ -1,35 +1,36 @@
 #!/bin/bash
 
-# Add and uncomment the following line to bashrc or zshrc as appropriate
+## Add and uncomment the following line to bashrc or zshrc as appropriate
 # [[ -f "$HOME/dotfiles/.shellrc" ]] && . "$HOME/dotfiles/.shellrc"
 ## Or you can also create a symbolic link to the root of the user and then for example add:
 # [[ -f "$HOME/.shellrc" ]] && . "$HOME/.shellrc"
 
-# Environment variables
-export PATH="$HOME/.local/bin:$PATH"
-export JAVA_HOME="/opt/openjdk-8"
+## Environment variables
+# export PATH="$HOME/.local/bin:$PATH"
+export JAVA_HOME="/usr/lib/jvm/java-8-openjdk-amd64"
 export PATH="$JAVA_HOME/bin:$PATH"
 export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"                   # This loads nvm
 [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion" # This loads nvm bash_completion
 . "$HOME/.cargo/env"
-export PATH="/snap/bin:$PATH"
+# export PATH="/snap/bin:$PATH"
 export EDITOR="nvim"
 
 if [ "$(readlink /proc/$$/exe)" = "/usr/bin/bash" ]; then
   source /usr/share/doc/fzf/examples/key-bindings.bash
-  source /usr/share/doc/fzf/examples/completion.bash
+  # source /usr/share/doc/fzf/examples/completion.bash
   eval "$(starship init bash)"
 elif [ "$(readlink /proc/$$/exe)" = "/usr/bin/zsh" ]; then
   source /usr/share/doc/fzf/examples/key-bindings.zsh
   source /usr/share/doc/fzf/examples/completion.zsh
-  source /usr/share/zsh-theme-powerlevel10k/powerlevel10k.zsh-theme
+  # source /usr/share/zsh-theme-powerlevel10k/powerlevel10k.zsh-theme
+  source ~/.powerlevel10k/powerlevel10k.zsh-theme
   source /usr/share/zsh-autosuggestions/zsh-autosuggestions.zsh
   source ~/.oh-my-zsh/plugins/git/git.plugin.zsh
   source /usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 fi
 
-# Aliases
+## Aliases
 if [ "$(
   which lsd &>/dev/null
   echo $?
@@ -65,7 +66,7 @@ if [ "$(
   alias catnl='batcat --paging=never'
 fi
 
-# General updates
+## General updates
 update() {
   version="$(nvm current)"
   (
@@ -82,20 +83,21 @@ update() {
   fi
 
   curl -LO https://github.com/neovim/neovim/releases/latest/download/nvim.appimage
-  if [ ! "$(md5sum /opt/neovim/nvim.appimage | awk '{print $1}')" = "$(md5sum "$HOME/nvim.appimage" | awk '{print $1}')" ]; then
+  if [ ! "$(md5sum $HOME/portable/nvim.appimage | awk '{print $1}')" = "$(md5sum "$HOME/nvim.appimage" | awk '{print $1}')" ]; then
     echo "Neovim update found!"
     sleep 2
     chmod +x nvim.appimage
-    rm /opt/neovim/nvim.appimage
-    mv "$HOME/nvim.appimage" /opt/neovim/
+    rm "$HOME/portable/nvim.appimage"
+    mv "$HOME/nvim.appimage" "$HOME/portable/nvim.appimage"
   else
+    echo "Already up to date."
     rm nvim.appimage
   fi
 
   if [ -d "$HOME/.cargo" ]; then
     rustup update
-    # # The construction process can take a long time depending on the capacity of the machine.
-    # It is convenient to ask before doing this action.
+    ## The construction process can take a long time depending on the capacity of the machine.
+    ## It is convenient to ask before doing this action.
     while true; do
       echo -n "Update installed binaries by cargo? (y/n) -> " && read -r opt
       if [ "$(echo "$opt" | awk '{print tolower($0)}')" = "y" ]; then
@@ -127,5 +129,22 @@ update() {
     sleep 2
     git pull --rebase
     cd || return 1
+  fi
+
+  local p10k="$HOME/.powerlevel10k"
+  if [[ -d $p10k ]]; then
+    cd "$p10k" || return 1
+    echo "Checking for updates to powerlevel10k..."
+    sleep 2
+    git pull --rebase
+    cd || return 1
+  fi
+
+  if [ "$(
+    which starship &>/dev/null
+    echo $?
+  )" -eq 0 ]; then
+   echo "Checking for updates to starship..."
+  curl -sS https://starship.rs/install.sh | sudo sh
   fi
 }
