@@ -1,0 +1,83 @@
+#!/bin/bash
+
+update() {
+  version="$(nvm current)"
+  (
+    cd "$NVM_DIR"
+    git fetch --tags origin
+    git checkout $(git describe --abbrev=0 --tags --match "v[0-9]*" $(git rev-list --tags --max-count=1))
+  ) && \. "$NVM_DIR/nvm.sh"
+  echo "Checking for possible nvm updates..."
+  if [ ! "$(nvm ls-remote --no-colors | tail -n1 | awk '{print $2}')" = "$(nvm current)" ]; then
+    echo "NVM update found"
+    sleep 2
+    nvm install node
+    nvm reinstall-packages "$version"
+  fi
+
+  curl -LO https://github.com/neovim/neovim/releases/latest/download/nvim.appimage
+  if [ ! "$(md5sum "$HOME/portable/nvim.appimage" | awk '{print $1}')" = "$(md5sum "$HOME/nvim.appimage" | awk '{print $1}')" ]; then
+    echo "Neovim update found!"
+    sleep 2
+    chmod +x nvim.appimage
+    rm "$HOME/portable/nvim.appimage"
+    mv "$HOME/nvim.appimage" "$HOME/portable/nvim.appimage"
+  else
+    echo "Already up to date."
+    rm nvim.appimage
+  fi
+
+  if [ -d "$HOME/.cargo" ]; then
+    rustup update
+    ## The construction process can take a long time depending on the capacity of the machine.
+    ## It is convenient to ask before doing this action.
+    while true; do
+      echo -n "Update installed binaries by cargo? (y/n) -> " && read -r opt
+      if [ "$(echo "$opt" | awk '{print tolower($0)}')" = "y" ]; then
+        for bin in $(cargo install --list | awk '/^ / {print}' | tr -d ' '); do
+          cargo install "$bin" --force
+        done
+        break
+      elif [ "$(echo "$opt" | awk '{print tolower($0)}')" = "n" ]; then
+        break
+      fi
+    done
+  fi
+
+  if [ "$(
+    which apt &>/dev/null
+    echo $?
+  )" -eq 0 ]; then
+    echo "Updating operating system..."
+    sudo apt-get update && sudo apt-get upgrade -y
+    sudo apt autoremove -y
+    echo "Checking for snap package updates if they exist..."
+    [[ -d /snap ]] && sudo snap refresh
+  fi
+
+  local ohmz="$HOME/.oh-my-zsh"
+  if [[ -d $ohmz ]]; then
+    cd "$ohmz" || return 1
+    echo "Checking for updates to oh my zsh framework..."
+    sleep 2
+    git pull --rebase
+    cd || return 1
+  fi
+
+  local p10k="$HOME/.powerlevel10k"
+  if [[ -d $p10k ]]; then
+    cd "$p10k" || return 1
+    echo "Checking for updates to powerlevel10k..."
+    sleep 2
+    git pull --rebase
+    cd || return 1
+  fi
+
+  if [ "$(
+    which starship &>/dev/null
+    echo $?
+  )" -eq 0 ]; then
+    echo "Checking for updates to starship..."
+    curl -sS https://starship.rs/install.sh | sudo sh
+  fi
+}

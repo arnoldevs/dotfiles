@@ -1,0 +1,36 @@
+#!/bin/bash
+
+if [ "$(
+  which lsd &>/dev/null
+  echo $?
+)" -eq 0 ]; then
+  alias ls='lsd --group-dirs=first'
+  alias ll='ls -lh'
+  alias la='ls -a'
+  alias l='lsd'
+  alias lla='ls -lha'
+  alias lt='ls --tree'
+else
+  alias ll='ls -lh'
+  alias la='ls -A'
+  alias l='ls -CF'
+  alias lla='ls -lah'
+  alias lt='ls --tree'
+fi
+
+if [ "$(
+  which kitty &>/dev/null
+  echo $?
+)" -eq 0 ]; then
+  alias icat="kitty +kitten icat"
+  alias d="kitty +kitten diff"
+fi
+
+if [ "$(
+  which batcat &>/dev/null
+  echo $?
+)" -eq 0 ]; then
+  alias cat='batcat'
+  alias catn='/bin/cat'
+  alias catnl='batcat --paging=never'
+fi
