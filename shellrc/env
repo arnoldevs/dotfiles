@@ -1,18 +1,18 @@
 #!/bin/bash
 
 ## Add and uncomment the following line to bashrc or zshrc as appropriate
-# [[ -d "$HOME/dotfiles/shellrc" ]] && . "$HOME/dotfiles/shellrc/env"
+# [[ -d "$HOME/.dotfiles/shellrc" ]] && . "$HOME/.dotfiles/shellrc/env"
 
-RC_DIR="$HOME/dotfiles/shellrc"
+RC_DIR="$HOME/.dotfiles/shellrc"
 # export PATH="$HOME/.local/bin:$PATH"
-export JAVA_HOME="/usr/lib/jvm/java-8-openjdk-amd64"
+export JAVA_HOME="/usr/lib/jvm/java-17-openjdk-amd64"
 export PATH="$JAVA_HOME/bin:$PATH"
 export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"                   ##This loads nvm
 [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion" ## This loads nvm bash_completion
 . "$HOME/.cargo/env"
 # export PATH="/snap/bin:$PATH"
-export EDITOR="nvim"
+# export EDITOR="nvim"
 
 if [ "$(readlink /proc/$$/exe)" = "/usr/bin/bash" ]; then
   source /usr/share/doc/fzf/examples/key-bindings.bash
@@ -23,8 +23,8 @@ elif [ "$(readlink /proc/$$/exe)" = "/usr/bin/zsh" ]; then
   source /usr/share/doc/fzf/examples/completion.zsh
   source ~/.powerlevel10k/powerlevel10k.zsh-theme
   source /usr/share/zsh-autosuggestions/zsh-autosuggestions.zsh
-  source ~/.oh-my-zsh/plugins/git/git.plugin.zsh
-  source ~/.oh-my-zsh/plugins/sudo/sudo.plugin.zsh
+  source ~/.ohmyzsh/plugins/git/git.plugin.zsh
+  source ~/.ohmyzsh/plugins/sudo/sudo.plugin.zsh
   source /usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 fi
 
