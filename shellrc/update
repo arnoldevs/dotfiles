@@ -19,13 +19,13 @@ update() {
 
   if [[ $(which nvim) != "/snap/bin/nvim" ]]; then
     curl -LO https://github.com/neovim/neovim/releases/latest/download/nvim.appimage
-    if [ ! "$(md5sum /opt/nvim.appimage | awk '{print $1}')" = "$(md5sum "$HOME/nvim.appimage" | awk '{print $1}')" ]; then
+    if [ ! "$(md5sum ~/portable/nvim.appimage | awk '{print $1}')" = "$(md5sum "$HOME/nvim.appimage" | awk '{print $1}')" ]; then
       echo -e "${yellowColour}Neovim update found!${endColour}"
-      chmod +x nvim.appimage
-      sudo rm /opt/nvim.appimage
-      sudo mv "$HOME/nvim.appimage" /opt/
+      chmod u+x nvim.appimage
+      rm ~/portable/nvim.appimage
+      mv "$HOME/nvim.appimage" ~/portable/
     else
-      echo "Already up to date."
+      echo "Nothing to do."
       rm nvim.appimage
     fi
   fi
@@ -84,6 +84,8 @@ update() {
       git pull --rebase
       cd .. || return 1
     done
+    sudo rm -rf /boot/grub/themes/dracula
+    sudo cp -r ~/.dracula/grub/dracula /boot/grub/themes/
     cd || return 1
   fi
 
