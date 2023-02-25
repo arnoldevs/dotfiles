@@ -19,11 +19,11 @@ update() {
 
   if [[ $(which nvim) != "/snap/bin/nvim" ]]; then
     curl -LO https://github.com/neovim/neovim/releases/latest/download/nvim.appimage
-    if [ ! "$(md5sum ~/portable/nvim.appimage | awk '{print $1}')" = "$(md5sum "$HOME/nvim.appimage" | awk '{print $1}')" ]; then
+    if [ ! "$(md5sum /opt/nvim.appimage | awk '{print $1}')" = "$(md5sum "$HOME/nvim.appimage" | awk '{print $1}')" ]; then
       echo -e "${yellowColour}Neovim update found!${endColour}"
       chmod u+x nvim.appimage
-      rm ~/portable/nvim.appimage
-      mv "$HOME/nvim.appimage" ~/portable/
+      sudo rm /opt/nvim.appimage
+      sudo mv "$HOME/nvim.appimage" /opt/
     else
       echo "Nothing to do."
       rm nvim.appimage
@@ -49,12 +49,12 @@ update() {
   fi
 
   if [ "$(
-    which apt &>/dev/null
+    which nala &>/dev/null
     echo $?
   )" -eq 0 ]; then
     echo -e "${greenColour}Updating operating system...${endColour}"
-    sudo apt-get update && sudo apt-get upgrade -y
-    sudo apt-get autoremove -y
+    sudo nala update && sudo nala upgrade -y
+    sudo nala autoremove -y
     echo -e "${greenColour}Checking for snap package updates if they exist...${endColour}"
     [[ -d /snap ]] && sudo snap refresh
   fi

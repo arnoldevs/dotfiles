@@ -23,7 +23,7 @@ if [ "$(
   echo $?
 )" -eq 0 ]; then
   alias icat="kitty +kitten icat"
-  alias df="kitty +kitten diff"
+  alias kitty-diff="kitty +kitten diff"
 fi
 
 if [ "$(
