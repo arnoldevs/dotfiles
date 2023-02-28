@@ -61,11 +61,11 @@ update() {
     which dnf &>/dev/null
     echo $?
   )" -eq 0 ]; then
-    sudo dnf upgrade-minimal -y
-    sudo dnf autoremove y
+    sudo dnf -y upgrade-minimal
+    sudo dnf -y autoremove
   fi
 
-  OHMZ=$HOME/.ohmyzsh
+  OHMZ="$HOME/.ohmyzsh"
   if [[ -d $OHMZ ]]; then
     cd "$OHMZ" || return 1
     echo -e "${greenColour}Checking for updates to oh my zsh framework...${endColour}"
@@ -73,7 +73,15 @@ update() {
     cd || return 1
   fi
 
-  P10K=$HOME/.powerlevel10k
+  BASHIT="$HOME/.bash_it"
+  if [[ -d $BASHIT ]]; then
+    cd "$BASHIT" || return 1
+    echo -e "${greenColour}Checking for updates to bash-it framework...${endColour}"
+    git pull --rebase
+    cd || return 1
+  fi
+
+  P10K="$HOME/.powerlevel10k"
   if [[ -d $P10K ]]; then
     cd "$P10K" || return 1
     echo -e "${greenColour}Checking for updates to powerlevel10k...${endColour}"
@@ -81,7 +89,7 @@ update() {
     cd || return 1
   fi
 
-  THEME=$HOME/.dracula
+  THEME="$HOME/.dracula"
   if [[ -d $THEME ]]; then
     cd "$THEME" || return 1
     echo -e "${greenColour}Checking for updates to all dracula color schemes...${endColour}"
@@ -90,14 +98,30 @@ update() {
       git pull --rebase
       cd .. || return 1
     done
+    if [[ -d "/boot/grub/" ]];then
     sudo rm -rf /boot/grub/themes/dracula
     sudo cp -r ~/.dracula/grub/dracula /boot/grub/themes/
+    sudo grub-mkconfig -o /boot/grub/grub.cfg
     cd || return 1
+    elif [[ -d "/boot/grub2/" ]]; then
+    sudo rm -rf /boot/grub2/themes/dracula
+    sudo cp -r ~/.dracula/grub/dracula /boot/grub2/themes/
+    sudo grub2-mkconfig -o /boot/grub2/grub.cfg
+    cd || return 1
+    fi  
   fi
 
-  if [[ $(which starship) == "/usr/local/bin/starship" ]]; then
+  if [[ $(which starship 2>/dev/null) = "/usr/local/bin/starship" ]]; then
     echo -e "${greenColour}Updating starship...${endColour}"
     curl -sS https://starship.rs/install.sh | sudo sh
+  fi
+
+  NERDF="$HOME/.nerd-fonts"
+  if [[ -d $NERDF ]]; then
+    cd "$NERDF" || return 1
+    echo -e "${greenColour}Checking for updates to nerd fonts...${endColour}"
+    git pull --rebase
+    cd || return 1
   fi
 
 }
