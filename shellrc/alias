@@ -26,11 +26,12 @@ if [ "$(
   alias kitty-diff="kitty +kitten diff"
 fi
 
+## The binary can be called bat or batcat depending on the distribution
 if [ "$(
-  which batcat &>/dev/null
+  which bat &>/dev/null
   echo $?
 )" -eq 0 ]; then
-  alias cat='batcat'
-  alias catn='/bin/cat'
-  alias catnl='batcat --paging=never'
+  alias cat='bat'
+  alias catn='/usr/bin/cat'
+  alias catnl='bat --paging=never'
 fi

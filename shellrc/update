@@ -17,7 +17,7 @@ update() {
     nvm reinstall-packages "$NVM_VERSION"
   fi
 
-  if [[ $(which nvim) != "/snap/bin/nvim" ]]; then
+  if [[ $(which nvim) = "/usr/local/bin/nvim" ]]; then
     curl -LO https://github.com/neovim/neovim/releases/latest/download/nvim.appimage
     if [ ! "$(md5sum /opt/nvim.appimage | awk '{print $1}')" = "$(md5sum "$HOME/nvim.appimage" | awk '{print $1}')" ]; then
       echo -e "${yellowColour}Neovim update found!${endColour}"
@@ -57,6 +57,12 @@ update() {
     sudo nala autoremove -y
     echo -e "${greenColour}Checking for snap package updates if they exist...${endColour}"
     [[ -d /snap ]] && sudo snap refresh
+  elif [ "$(
+    which dnf &>/dev/null
+    echo $?
+  )" -eq 0 ]; then
+    sudo dnf upgrade-minimal -y
+    sudo dnf autoremove y
   fi
 
   OHMZ=$HOME/.ohmyzsh
