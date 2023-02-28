@@ -20,7 +20,7 @@ fi
 if [ "$(readlink /proc/$$/exe)" = "/usr/bin/bash" ]; then
   source /usr/share/fzf/shell/key-bindings.bash
   ###source /usr/share/doc/fzf/examples/key-bindings.bash
-  ###eval "$(starship init bash)"
+  eval "$(starship init bash)"
 elif [ "$(readlink /proc/$$/exe)" = "/usr/bin/zsh" ]; then
   source /usr/share/fzf/shell/key-bindings.bash
   ###source /usr/share/doc/fzf/examples/completion.zsh

@@ -98,17 +98,15 @@ update() {
       git pull --rebase
       cd .. || return 1
     done
-    if [[ -d "/boot/grub/" ]];then
-    sudo rm -rf /boot/grub/themes/dracula
-    sudo cp -r ~/.dracula/grub/dracula /boot/grub/themes/
-    sudo grub-mkconfig -o /boot/grub/grub.cfg
-    cd || return 1
-    elif [[ -d "/boot/grub2/" ]]; then
-    sudo rm -rf /boot/grub2/themes/dracula
-    sudo cp -r ~/.dracula/grub/dracula /boot/grub2/themes/
-    sudo grub2-mkconfig -o /boot/grub2/grub.cfg
-    cd || return 1
-    fi  
+    ### if [[ -d "/boot/grub/" ]];then
+    ### sudo rm -rf /boot/grub/themes/dracula
+    ### sudo cp -r ~/.dracula/grub/dracula /boot/grub/themes/
+    ### sudo grub-mkconfig -o /boot/grub/grub.cfg
+    ### elif [[ -d "/boot/grub2/" ]]; then
+    ### sudo rm -rf /boot/grub2/themes/dracula
+    ### sudo cp -r ~/.dracula/grub/dracula /boot/grub2/themes/
+    ### sudo grub2-mkconfig -o /boot/grub2/grub.cfg
+    ### fi  
   fi
 
   if [[ $(which starship 2>/dev/null) = "/usr/local/bin/starship" ]]; then

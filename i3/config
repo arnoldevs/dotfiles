@@ -57,6 +57,7 @@ bindsym $mod+Return exec alacritty
 bindsym $mod+Shift+f exec firefox
 bindsym $mod+Shift+b exec firefox-dev
 bindsym $mod+Shift+t exec thunar
+bindsym $mod+Shift+v exec code
 
 
 # kill focused window
