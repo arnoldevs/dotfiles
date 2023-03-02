@@ -19,6 +19,7 @@ $php\
 [](fg:#212736 bg:#1d2230)\
 $time\
 [ ](fg:#1d2230)\
+$cmd_duration\
 \n$character"""
 
 [character]
@@ -95,3 +96,6 @@ disabled = false
 time_format = "%R" # Hour:Minute Format
 style = "bg:#1d2230"
 format = '[[  $time ](fg:#a0a9cb bg:#1d2230)]($style)'
+
+[cmd_duration]
+format = '󰞌 [$duration](bold #a0a9cb)'

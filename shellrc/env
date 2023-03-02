@@ -7,8 +7,8 @@
 # ln -s ~/.dotfiles/shellrc ~/.bashrc.d
 
 ###RC_DIR="$HOME/.dotfiles/shellrc"
-###export JAVA_HOME="/usr/lib/jvm/java-17-openjdk-amd64"
-###export PATH="$JAVA_HOME/bin:$PATH"
+export JAVA_HOME="/usr/lib/jvm/java-openjdk"
+export PATH="$JAVA_HOME/bin:$PATH"
 if [[ -d "$HOME/.nvm" ]]; then
   export NVM_DIR="$HOME/.nvm"
   [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"                   ##This loads nvm
@@ -20,6 +20,7 @@ fi
 if [ "$(readlink /proc/$$/exe)" = "/usr/bin/bash" ]; then
   source /usr/share/fzf/shell/key-bindings.bash
   ###source /usr/share/doc/fzf/examples/key-bindings.bash
+  bind 'set completion-ignore-case on'
   eval "$(starship init bash)"
 elif [ "$(readlink /proc/$$/exe)" = "/usr/bin/zsh" ]; then
   source /usr/share/fzf/shell/key-bindings.bash
