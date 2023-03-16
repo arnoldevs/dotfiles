@@ -4,17 +4,17 @@ endColour="\033[0m\e[0m"
 redColour="\e[0;31m\033[1m"
 yellowColour="\e[0;33m\033[1m"
 update() {
-  NVM_VERSION=$(nvm current)
+  NODEJS_VERSION=$(nvm current)
   (
     cd "$NVM_DIR"
     git fetch --tags origin
     git checkout $(git describe --abbrev=0 --tags --match "v[0-9]*" $(git rev-list --tags --max-count=1))
   ) && \. "$NVM_DIR/nvm.sh"
-  echo -e "${greenColour}Checking for possible nvm updates...${endColour}"
+  echo -e "${greenColour}Checking for possible nodejs updates...${endColour}"
   if [ ! "$(nvm ls-remote --no-colors | tail -n1 | awk '{print $2}')" = "$(nvm current)" ]; then
-    echo -e "${yellowColour}NVM update found${endColour}"
+    echo -e "${yellowColour}Nodejs update found${endColour}"
     nvm install node
-    nvm reinstall-packages "$NVM_VERSION"
+    nvm reinstall-packages "$NODEJS_VERSION"
   fi
 
   if [[ $(which nvim) = "/usr/local/bin/nvim" ]]; then
@@ -52,7 +52,7 @@ update() {
     which nala &>/dev/null
     echo $?
   )" -eq 0 ]; then
-    echo -e "${greenColour}Updating operating system...${endColour}"
+    echo -e "${greenColour}Updating OS...${endColour}"
     sudo nala update && sudo nala upgrade -y
     sudo nala autoremove -y
     echo -e "${greenColour}Checking for snap package updates if they exist...${endColour}"
@@ -61,6 +61,7 @@ update() {
     which dnf &>/dev/null
     echo $?
   )" -eq 0 ]; then
+    echo -e "${greenColour}Updating OS...${endColour}"
     sudo dnf -y upgrade-minimal
     sudo dnf -y autoremove
   fi
@@ -98,6 +99,10 @@ update() {
       git pull --rebase
       cd .. || return 1
     done
+    sudo cp -r "$THEME/gtk/" /usr/share/themes/Dracula
+    sudo cp -r "$THEME/dracula-icons/" /usr/share/icons/Dracula-icons
+    sudo cp -r "$THEME/gtk/kde/cursors/Dracula-cursors" /usr/share/icons/
+
     ### if [[ -d "/boot/grub/" ]];then
     ### sudo rm -rf /boot/grub/themes/dracula
     ### sudo cp -r ~/.dracula/grub/dracula /boot/grub/themes/
@@ -119,6 +124,7 @@ update() {
     cd "$NERDF" || return 1
     echo -e "${greenColour}Checking for updates to nerd fonts...${endColour}"
     git pull --rebase
+    sudo cp -r ./patched-fonts/* /usr/share/fonts/
     cd || return 1
   fi
 
