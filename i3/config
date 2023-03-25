@@ -246,6 +246,6 @@ for_window [class="^.*"] border pixel 2
 # new_window pixel 2
 
 # screen
-exec --no-startup-id ~/.config/i3/scripts/.fehbg
+exec --no-startup-id ~/.fehbg
 exec --no-startup-id ~/.config/i3/scripts/monitor.sh
 exec --no-startup-id picom -b

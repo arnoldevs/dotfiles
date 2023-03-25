@@ -22,6 +22,7 @@ if [ "$(readlink /proc/$$/exe)" = "/usr/bin/bash" ]; then
   ###source /usr/share/doc/fzf/examples/key-bindings.bash
   bind 'set completion-ignore-case on'
   eval "$(starship init bash)"
+  eval "$(zoxide init bash)"
 elif [ "$(readlink /proc/$$/exe)" = "/usr/bin/zsh" ]; then
   source /usr/share/fzf/shell/key-bindings.bash
   ###source /usr/share/doc/fzf/examples/completion.zsh
