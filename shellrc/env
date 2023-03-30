@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 ## Add and uncomment the following line to bashrc or zshrc as appropriate
 # [[ -d \"\$HOME/.dotfiles/shellrc\" ]] && . \"\$HOME/.dotfiles/shellrc/env\"
