@@ -35,3 +35,11 @@ if [ "$(
   alias catn='/usr/bin/cat'
   alias catnl='bat --paging=never'
 fi
+
+if [ "$(
+  which rusty-rain &>/dev/null
+  echo $?
+)" -eq 0 ]; then
+alias rain='rusty-rain -C 0,139,139 -sc jap'
+fi
+

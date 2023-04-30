@@ -38,7 +38,7 @@ update() {
     while true; do
       echo -ne "${yellowColour}Update installed binaries by cargo? (y/n) -> ${endColour}" && read -r opt
       if [ "$(echo "$opt" | awk '{print tolower($0)}')" = "y" ]; then
-        for bin in $(cargo install --list | awk '/^ / {print}' | tr -d ' '); do
+        for bin in $(cargo install --list | awk 'NR % 2 != 0 {print $1}'); do
           cargo install "$bin" --force
         done
         break
@@ -90,28 +90,17 @@ update() {
     cd || return 1
   fi
 
-  THEME="$HOME/.dracula"
+  THEME="$HOME/.customization"
   if [[ -d $THEME ]]; then
     cd "$THEME" || return 1
-    echo -e "${greenColour}Checking for updates to all dracula color schemes...${endColour}"
+    echo -e "${greenColour}Checking for customizations updates...${endColour}"
     for DIR in *; do
       cd "$DIR" || return 1
       git pull --rebase
       cd .. || return 1
     done
     sudo cp -r "$THEME/gtk/" /usr/share/themes/Dracula
-    sudo cp -r "$THEME/dracula-icons/" /usr/share/icons/Dracula-icons
     sudo cp -r "$THEME/gtk/kde/cursors/Dracula-cursors" /usr/share/icons/
-
-    ### if [[ -d "/boot/grub/" ]];then
-    ### sudo rm -rf /boot/grub/themes/dracula
-    ### sudo cp -r ~/.dracula/grub/dracula /boot/grub/themes/
-    ### sudo grub-mkconfig -o /boot/grub/grub.cfg
-    ### elif [[ -d "/boot/grub2/" ]]; then
-    ### sudo rm -rf /boot/grub2/themes/dracula
-    ### sudo cp -r ~/.dracula/grub/dracula /boot/grub2/themes/
-    ### sudo grub2-mkconfig -o /boot/grub2/grub.cfg
-    ### fi  
   fi
 
   if [[ $(which starship 2>/dev/null) = "/usr/local/bin/starship" ]]; then
@@ -119,7 +108,7 @@ update() {
     curl -sS https://starship.rs/install.sh | sudo sh
   fi
 
-  NERDF="$HOME/.nerd-fonts"
+  NERDF="$HOME/.customization/nerd-fonts"
   if [[ -d $NERDF ]]; then
     cd "$NERDF" || return 1
     echo -e "${greenColour}Checking for updates to nerd fonts...${endColour}"
@@ -127,14 +116,4 @@ update() {
     sudo cp -r ./patched-fonts/* /usr/share/fonts/
     cd || return 1
   fi
-
-  ROFI_THEME="$HOME/.rofi"
-  if [[ -d $ROFI_THEME ]]; then
-    cd "$ROFI_THEME" || return 1
-    echo -e "${greenColour}Checking for updates to rofi themes...${endColour}"
-    git fetch upstream
-    git merge upstram/master
-    cd || return 1
-  fi
-
 }

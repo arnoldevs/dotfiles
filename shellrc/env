@@ -9,6 +9,9 @@
 ###RC_DIR="$HOME/.dotfiles/shellrc"
 export JAVA_HOME="/usr/lib/jvm/java-openjdk"
 export PATH="$JAVA_HOME/bin:$PATH"
+export EDITOR="$(which nvim)"
+export VISUAL="$(which nvim)"
+
 if [[ -d "$HOME/.nvm" ]]; then
   export NVM_DIR="$HOME/.nvm"
   [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"                   ##This loads nvm
