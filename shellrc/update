@@ -15,6 +15,7 @@ update() {
     echo -e "${yellowColour}Nodejs update found${endColour}"
     nvm install node
     nvm reinstall-packages "$NODEJS_VERSION"
+    rm -rf "$HOME/.nvm/versions/node/$NODEJS_VERSION"
   fi
 
   if [[ $(which nvim) = "/usr/local/bin/nvim" ]]; then

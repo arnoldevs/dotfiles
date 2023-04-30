@@ -223,7 +223,7 @@ client.background       #F8F8F2
 bar {
     font pango:JetBrainsMono Nerd Font, FontAwesome 12
     position top
-    status_command /usr/bin/i3status-rs ~/.config/i3status-rs/config.toml
+    status_command /usr/bin/i3status-rs ~/.config/i3status-rust/config.toml
   colors {
     background #282A36
     statusline #F8F8F2
