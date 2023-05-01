@@ -5,9 +5,6 @@ theme = "dracula"
 
 [icons]
 icons = "awesome4"
-[icons.overrides]
-bat = ["|E|", "|_|", "|=|", "|F|"]
-bat_charging = "|^| "
 
 [[block]]
 block = "cpu"
@@ -18,7 +15,7 @@ format = " $icon $max"
 
 [[block]]
 block = "memory"
-format = " $icon $mem_total_used_percents.eng(w:2) "
+format = " $icon $mem_used_percents.eng(w:1) "
 format_alt = " $icon_swap $swap_used_percents.eng(w:2) "
 
 [[block]]
@@ -37,8 +34,8 @@ block = "docker"
 block = "dnf"
 interval = 1800
 format = " $icon $count.eng(w:1) "
-format_singular = " $icon $count.eng(w:1) "
-format_up_to_date = " $icon "
+format_singular = " $icon "
+format_up_to_date = ""
 critical_updates_regex = "(linux|linux-lts|linux-zen)"
 
 [[block]]
