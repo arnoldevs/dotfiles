@@ -19,7 +19,20 @@ format = " $icon $mem_used_percents.eng(w:1) "
 format_alt = " $icon_swap $swap_used_percents.eng(w:2) "
 
 [[block]]
+block = "disk_space"
+info_type = "available"
+alert_unit = "GB"
+alert = 10.0
+warning = 15.0
+format = " $icon $available "
+format_alt = " $icon $used / $total "
+[[block.click]]
+button = "right"
+update = true
+
+[[block]]
 block = "sound"
+max_vol = 150
 [[block.click]]
 button = "left"
 cmd = "pavucontrol"
@@ -37,6 +50,9 @@ format = " $icon $count.eng(w:1) "
 format_singular = " $icon "
 format_up_to_date = ""
 critical_updates_regex = "(linux|linux-lts|linux-zen)"
+[[block.click]]
+button = "left"
+cmd = "dnf list -q --upgrades | tail -n +2 | rofi -dmenu"
 
 [[block]]
 block = "battery"

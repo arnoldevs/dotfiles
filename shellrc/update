@@ -10,7 +10,7 @@ update() {
     git fetch --tags origin
     git checkout $(git describe --abbrev=0 --tags --match "v[0-9]*" $(git rev-list --tags --max-count=1))
   ) && \. "$NVM_DIR/nvm.sh"
-  echo -e "${greenColour}Checking for possible nodejs updates...${endColour}"
+  echo -e "${greenColour}Checking for possible nodejs updates${endColour}"
   if [ ! "$(nvm ls-remote --no-colors | tail -n1 | awk '{print $2}')" = "$(nvm current)" ]; then
     echo -e "${yellowColour}Nodejs update found${endColour}"
     nvm install node
@@ -32,7 +32,7 @@ update() {
   fi
 
   if [ -d "$HOME/.cargo" ]; then
-    echo -e "${greenColour}Updating rust...${endColour}"
+    echo -e "${greenColour}Updating rust${endColour}"
     rustup update
     ## The construction process can take a long time dependColouring on the capacity of the machine.
     ## It is convenient to ask before doing this action.
@@ -53,24 +53,32 @@ update() {
     which nala &>/dev/null
     echo $?
   )" -eq 0 ]; then
-    echo -e "${greenColour}Updating OS...${endColour}"
+    echo -e "${greenColour}Updating OS${endColour}"
     sudo nala update && sudo nala upgrade -y
     sudo nala autoremove -y
-    echo -e "${greenColour}Checking for snap package updates if they exist...${endColour}"
+    echo -e "${greenColour}Updating snap packages${endColour}"
     [[ -d /snap ]] && sudo snap refresh
   elif [ "$(
     which dnf &>/dev/null
     echo $?
   )" -eq 0 ]; then
-    echo -e "${greenColour}Updating OS...${endColour}"
-    sudo dnf -y upgrade-minimal
-    sudo dnf -y autoremove
+    echo -e "${greenColour}Updating OS${endColour}"
+    sudo dnf upgrade-minimal
+    sudo dnf autoremove
   fi
+
+ if [ "$(
+    which flatpak &>/dev/null
+    echo $?
+  )" -eq 0 ]; then
+    echo -e "${greenColour}Updating flatpak packages${endColour}"
+    flatpak update
+ fi 
 
   OHMZ="$HOME/.ohmyzsh"
   if [[ -d $OHMZ ]]; then
     cd "$OHMZ" || return 1
-    echo -e "${greenColour}Checking for updates to oh my zsh framework...${endColour}"
+    echo -e "${greenColour}Checking for updates to oh my zsh framework${endColour}"
     git pull --rebase
     cd || return 1
   fi
@@ -78,7 +86,7 @@ update() {
   BASHIT="$HOME/.bash_it"
   if [[ -d $BASHIT ]]; then
     cd "$BASHIT" || return 1
-    echo -e "${greenColour}Checking for updates to bash-it framework...${endColour}"
+    echo -e "${greenColour}Checking for updates to bash-it framework${endColour}"
     git pull --rebase
     cd || return 1
   fi
@@ -86,7 +94,7 @@ update() {
   P10K="$HOME/.powerlevel10k"
   if [[ -d $P10K ]]; then
     cd "$P10K" || return 1
-    echo -e "${greenColour}Checking for updates to powerlevel10k...${endColour}"
+    echo -e "${greenColour}Checking for updates to powerlevel10k${endColour}"
     git pull --rebase
     cd || return 1
   fi
@@ -94,7 +102,7 @@ update() {
   THEME="$HOME/.customization"
   if [[ -d $THEME ]]; then
     cd "$THEME" || return 1
-    echo -e "${greenColour}Checking for customizations updates...${endColour}"
+    echo -e "${greenColour}Checking for customizations updates${endColour}"
     for DIR in *; do
       cd "$DIR" || return 1
       git pull --rebase
@@ -102,19 +110,28 @@ update() {
     done
     sudo cp -r "$THEME/gtk/" /usr/share/themes/Dracula
     sudo cp -r "$THEME/gtk/kde/cursors/Dracula-cursors" /usr/share/icons/
+    cd || return 1
   fi
 
   if [[ $(which starship 2>/dev/null) = "/usr/local/bin/starship" ]]; then
-    echo -e "${greenColour}Updating starship...${endColour}"
+    echo -e "${greenColour}Updating starship${endColour}"
     curl -sS https://starship.rs/install.sh | sudo sh
   fi
 
   NERDF="$HOME/.customization/nerd-fonts"
   if [[ -d $NERDF ]]; then
     cd "$NERDF" || return 1
-    echo -e "${greenColour}Checking for updates to nerd fonts...${endColour}"
+    echo -e "${greenColour}Checking for updates to nerd fonts${endColour}"
     git pull --rebase
     sudo cp -r ./patched-fonts/* /usr/share/fonts/
     cd || return 1
+  fi
+
+  if [[ $(pip freeze --user | awk -F "==" '{print $1}' | wc -l) -ge 1 ]]; then
+    echo -e "${greenColour}Python packages for user found, updating them${endColour}"
+    for package in $(pip freeze --user | awk -F "==" '{print $1}')
+    do
+      pip install --user --upgrade $package
+    done
   fi
 }

@@ -23,7 +23,8 @@ $cmd_duration\
 \n$character"""
 
 [character]
-success_symbol = '[➜](bold green)'
+error_symbol = '[➜](bold #ff5555)'
+success_symbol = '[➜](bold #50fa7b)'
 
 [directory]
 style = "fg:#394260 bg:#769ff0"
