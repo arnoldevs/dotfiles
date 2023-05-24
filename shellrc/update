@@ -14,8 +14,9 @@ update() {
   if [ ! "$(nvm ls-remote --no-colors | tail -n1 | awk '{print $2}')" = "$(nvm current)" ]; then
     echo -e "${yellowColour}Nodejs update found${endColour}"
     nvm install node
+    nvm use node
     nvm reinstall-packages "$NODEJS_VERSION"
-    rm -rf "$HOME/.nvm/versions/node/$NODEJS_VERSION"
+    nvm install-latest-npm
   fi
 
   if [[ $(which nvim) = "/usr/local/bin/nvim" ]]; then
@@ -110,6 +111,10 @@ update() {
     done
     sudo cp -r "$THEME/gtk/" /usr/share/themes/Dracula
     sudo cp -r "$THEME/gtk/kde/cursors/Dracula-cursors" /usr/share/icons/
+    sudo cp -r "$THEME/gtk/kde/kvantum/Dracula/" /usr/share/Kvantum/
+    # sudo cp -r "$THEME/gtk/kde/aurorae/Dracula/" /usr/share/aurorae/themes/
+    # sudo cp -r $THEME/gtk/kde/color-schemes/* /usr/share/color-schemes/
+    # sudo cp -r $THEME/gtk/kde/plasma/* /usr/share/plasma/
     cd || return 1
   fi
 
