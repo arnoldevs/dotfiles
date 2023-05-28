@@ -112,9 +112,9 @@ update() {
     sudo cp -r "$THEME/gtk/" /usr/share/themes/Dracula
     sudo cp -r "$THEME/gtk/kde/cursors/Dracula-cursors" /usr/share/icons/
     sudo cp -r "$THEME/gtk/kde/kvantum/Dracula/" /usr/share/Kvantum/
-    # sudo cp -r "$THEME/gtk/kde/aurorae/Dracula/" /usr/share/aurorae/themes/
-    # sudo cp -r $THEME/gtk/kde/color-schemes/* /usr/share/color-schemes/
-    # sudo cp -r $THEME/gtk/kde/plasma/* /usr/share/plasma/
+    sudo cp -r "$THEME/gtk/kde/aurorae/Dracula/" /usr/share/aurorae/themes/
+    sudo cp -r $THEME/gtk/kde/color-schemes/* /usr/share/color-schemes/
+    sudo cp -r $THEME/gtk/kde/plasma/* /usr/share/plasma/
     cd || return 1
   fi
 
@@ -138,5 +138,10 @@ update() {
     do
       pip install --user --upgrade $package
     done
+  fi
+
+  if [[ -f ~/.bash-preexec.sh ]]; then
+    echo -e "${greenColour}Updating bash-preexec${endColour}"
+    curl https://raw.githubusercontent.com/rcaloras/bash-preexec/master/bash-preexec.sh -o ~/.bash-preexec.sh
   fi
 }
