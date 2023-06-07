@@ -1,10 +1,23 @@
 #!/usr/bin/env bash
-greenColour="\e[0;32m\033[1m"
-endColour="\033[0m\e[0m"
-redColour="\e[0;31m\033[1m"
-yellowColour="\e[0;33m\033[1m"
+
 update() {
-  NODEJS_VERSION=$(nvm current)
+local greenColour="\e[0;32m\033[1m"
+local endColour="\033[0m\e[0m"
+local redColour="\e[0;31m\033[1m"
+local yellowColour="\e[0;33m\033[1m"
+
+declare -a updates=(node_js neovim rust system_updates flatpak_packages python_user starship_rs preexec_bash customization)
+declare -a options=( "$@" )
+# IFS=" " read -r -a options <<< "$@"
+
+info() {
+  echo -e "Usage: update [options]\n\nList of main commands:\n"
+  echo -e "customization\nflatpak\nneovim\nnodejs\npreexec\nrust\nstarship\nsystem"
+}
+
+node_js() {
+  local NODEJS_VERSION
+  NODEJS_VERSION=$(node -v)
   (
     cd "$NVM_DIR"
     git fetch --tags origin
@@ -18,7 +31,9 @@ update() {
     nvm reinstall-packages "$NODEJS_VERSION"
     nvm install-latest-npm
   fi
+}
 
+neovim() {
   if [[ $(which nvim) = "/usr/local/bin/nvim" ]]; then
     curl -LO https://github.com/neovim/neovim/releases/latest/download/nvim.appimage
     if [ ! "$(md5sum /opt/nvim.appimage | awk '{print $1}')" = "$(md5sum "$HOME/nvim.appimage" | awk '{print $1}')" ]; then
@@ -31,7 +46,9 @@ update() {
       rm nvim.appimage
     fi
   fi
+}
 
+rust() {
   if [ -d "$HOME/.cargo" ]; then
     echo -e "${greenColour}Updating rust${endColour}"
     rustup update
@@ -49,7 +66,9 @@ update() {
       fi
     done
   fi
+}
 
+system_updates() {
   if [ "$(
     which nala &>/dev/null
     echo $?
@@ -67,81 +86,118 @@ update() {
     sudo dnf upgrade-minimal
     sudo dnf autoremove
   fi
+}
 
- if [ "$(
+flatpak_packages() {
+  if [ "$(
     which flatpak &>/dev/null
     echo $?
   )" -eq 0 ]; then
     echo -e "${greenColour}Updating flatpak packages${endColour}"
     flatpak update
- fi 
-
-  OHMZ="$HOME/.ohmyzsh"
-  if [[ -d $OHMZ ]]; then
-    cd "$OHMZ" || return 1
-    echo -e "${greenColour}Checking for updates to oh my zsh framework${endColour}"
-    git pull --rebase
-    cd || return 1
   fi
+}
 
-  BASHIT="$HOME/.bash_it"
-  if [[ -d $BASHIT ]]; then
-    cd "$BASHIT" || return 1
-    echo -e "${greenColour}Checking for updates to bash-it framework${endColour}"
-    git pull --rebase
-    cd || return 1
+python_user() {
+  if [[ $(pip freeze --user | awk -F "==" '{print $1}' | wc -l) -ge 1 ]]; then
+    echo -e "${greenColour}Python packages for user found, updating them${endColour}"
+    for package in $(pip freeze --user | awk -F "==" '{print $1}'); do
+      pip install --user --upgrade "$package"
+    done
   fi
+}
 
-  P10K="$HOME/.powerlevel10k"
-  if [[ -d $P10K ]]; then
-    cd "$P10K" || return 1
-    echo -e "${greenColour}Checking for updates to powerlevel10k${endColour}"
-    git pull --rebase
-    cd || return 1
+starship_rs() {
+  if [[ $(which starship 2>/dev/null) = "/usr/local/bin/starship" ]]; then
+    echo -e "${greenColour}Updating starship${endColour}"
+    curl -sS https://starship.rs/install.sh | sudo sh
   fi
+}
 
-  THEME="$HOME/.customization"
+preexec_bash() {
+  if [[ -f ~/.bash-preexec.sh ]]; then
+    echo -e "${greenColour}Updating bash-preexec${endColour}"
+    curl https://raw.githubusercontent.com/rcaloras/bash-preexec/master/bash-preexec.sh -o ~/.bash-preexec.sh
+  fi
+}
+
+customization() {
+  local THEME="$HOME/.customization"
   if [[ -d $THEME ]]; then
     cd "$THEME" || return 1
     echo -e "${greenColour}Checking for customizations updates${endColour}"
     for DIR in *; do
       cd "$DIR" || return 1
       git pull --rebase
+      if [[ $DIR == "gtk" ]]; then
+        sudo cp -r ../gtk/ /usr/share/themes/Dracula
+        sudo cp -r ./kde/cursors/Dracula-cursors /usr/share/icons/
+        sudo cp -r ./kde/kvantum/Dracula/ /usr/share/Kvantum/
+        sudo cp -r ./kde/aurorae/Dracula/ /usr/share/aurorae/themes/
+        sudo cp -r ./kde/color-schemes/* /usr/share/color-schemes/
+        sudo cp -r ./kde/plasma/* /usr/share/plasma/
+      fi
+      if [[ $DIR == "libreoffice" ]]; then
+        ./install.sh
+      fi
+      if [[ $DIR == "nerd-fonts" ]]; then
+        sudo cp -r ./patched-fonts/* /usr/share/fonts/
+      fi
       cd .. || return 1
     done
-    sudo cp -r "$THEME/gtk/" /usr/share/themes/Dracula
-    sudo cp -r "$THEME/gtk/kde/cursors/Dracula-cursors" /usr/share/icons/
-    sudo cp -r "$THEME/gtk/kde/kvantum/Dracula/" /usr/share/Kvantum/
-    sudo cp -r "$THEME/gtk/kde/aurorae/Dracula/" /usr/share/aurorae/themes/
-    sudo cp -r $THEME/gtk/kde/color-schemes/* /usr/share/color-schemes/
-    sudo cp -r $THEME/gtk/kde/plasma/* /usr/share/plasma/
-    cd || return 1
   fi
+}
 
-  if [[ $(which starship 2>/dev/null) = "/usr/local/bin/starship" ]]; then
-    echo -e "${greenColour}Updating starship${endColour}"
-    curl -sS https://starship.rs/install.sh | sudo sh
-  fi
+if [[ ${#options[@]} -gt 0 ]]; then
+  for o in "${options[@]}"; do
+    case "$o" in
+    all)
+      for i in "${updates[@]}"; do $i; done
+      ;;
+    nodejs)
+      node_js
+      ;;
+    neovim)
+      neovim
+      ;;
+    rust)
+      rust
+      ;;
+    system)
+      system_updates
+      ;;
+    flatpak)
+      flatpak_packages
+      ;;
+    python)
+      python_user
+      ;;
+    starship)
+      starship_rs
+      ;;
+    preexec)
+      preexec_bash
+      ;;
+    customization)
+      customization
+      ;;
+    *)
+      if [[ "$o" != "-h" ]]; then
+        echo -e "${redColour}'$o'${endColour} invalid command, use ${greenColour}update -h${endColour} to see more information"
+      fi
+      ;;
+    esac
+  done
+else
+  info
+fi
 
-  NERDF="$HOME/.customization/nerd-fonts"
-  if [[ -d $NERDF ]]; then
-    cd "$NERDF" || return 1
-    echo -e "${greenColour}Checking for updates to nerd fonts${endColour}"
-    git pull --rebase
-    sudo cp -r ./patched-fonts/* /usr/share/fonts/
-    cd || return 1
-  fi
-
-  if [[ $(pip freeze --user | awk -F "==" '{print $1}' | wc -l) -ge 1 ]]; then
-    echo -e "${greenColour}Python packages for user found, updating them${endColour}"
-    for package in $(pip freeze --user | awk -F "==" '{print $1}')
-    do
-      pip install --user --upgrade $package
-    done
-  fi
-
-  if [[ -f ~/.bash-preexec.sh ]]; then
-    echo -e "${greenColour}Updating bash-preexec${endColour}"
-    curl https://raw.githubusercontent.com/rcaloras/bash-preexec/master/bash-preexec.sh -o ~/.bash-preexec.sh
-  fi
+while getopts ":h" opt; do
+  case "$opt" in
+  h)
+    info
+    ;;
+  *) ;;
+  esac
+done
 }
