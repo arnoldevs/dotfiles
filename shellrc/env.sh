@@ -7,10 +7,15 @@
 # ln -s ~/.dotfiles/shellrc ~/.bashrc.d
 
 ###RC_DIR="$HOME/.dotfiles/shellrc"
+if [[ $(which java &>/dev/null ; echo $?) -eq 0 ]]; then
 export JAVA_HOME="/usr/lib/jvm/java-openjdk"
 export PATH="$JAVA_HOME/bin:$PATH"
+fi
+
+if [[ $(which nvim &>/dev/null ; echo $?) -eq 0 ]]; then
 export EDITOR="$(which nvim)"
 export VISUAL="$(which nvim)"
+fi
 
 if [[ -d "$HOME/.nvm" ]]; then
   export NVM_DIR="$HOME/.nvm"
@@ -22,11 +27,11 @@ fi
 
 if [ "$(readlink /proc/$$/exe)" = "/usr/bin/bash" ]; then
   [[ -f ~/.bash-preexec.sh ]] && source ~/.bash-preexec.sh
-  eval "$(atuin init bash)"
-  source /usr/share/fzf/shell/key-bindings.bash
+  [[ $(which atuin &>/dev/null ; echo $?) -eq 0 ]] && eval "$(atuin init bash)"
+  [[ $(which fzf &>/dev/null ; echo $?) -eq 0 ]] && source /usr/share/fzf/shell/key-bindings.bash
   bind 'set completion-ignore-case on'
-  eval "$(starship init bash)"
-  eval "$(zoxide init bash)"
+  [[ $(which starship &>/dev/null ; echo $?) -eq 0 ]] && eval "$(starship init bash)"
+  [[ $(which zoxide &>/dev/null ; echo $?) -eq 0 ]] && eval "$(zoxide init bash)"
 elif [ "$(readlink /proc/$$/exe)" = "/usr/bin/zsh" ]; then
   source /usr/share/fzf/shell/key-bindings.bash
   ###source /usr/share/doc/fzf/examples/completion.zsh
@@ -46,4 +51,4 @@ export FZF_DEFAULT_OPTS='--color=fg:#f8f8f2,bg:#282a36,hl:#bd93f9 --color=fg+:#f
 ###source "$RC_DIR/alias"
 ###source "$RC_DIR/update"
 
-export QT_QPA_PLATFORMTHEME='qt5ct'
+[[ $(which qt5ct &>/dev/null ; echo $?) -eq 0 ]] && export QT_QPA_PLATFORMTHEME='qt5ct'

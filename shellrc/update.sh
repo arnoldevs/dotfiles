@@ -31,6 +31,7 @@ node_js() {
     nvm reinstall-packages "$NODEJS_VERSION"
     nvm install-latest-npm
   fi
+  cd || return 1
 }
 
 neovim() {
@@ -129,22 +130,9 @@ customization() {
     for DIR in *; do
       cd "$DIR" || return 1
       git pull --rebase
-      if [[ $DIR == "gtk" ]]; then
-        sudo cp -r ../gtk/ /usr/share/themes/Dracula
-        sudo cp -r ./kde/cursors/Dracula-cursors /usr/share/icons/
-        sudo cp -r ./kde/kvantum/Dracula/ /usr/share/Kvantum/
-        sudo cp -r ./kde/aurorae/Dracula/ /usr/share/aurorae/themes/
-        sudo cp -r ./kde/color-schemes/* /usr/share/color-schemes/
-        sudo cp -r ./kde/plasma/* /usr/share/plasma/
-      fi
-      if [[ $DIR == "libreoffice" ]]; then
-        ./install.sh
-      fi
-      if [[ $DIR == "nerd-fonts" ]]; then
-        sudo cp -r ./patched-fonts/* /usr/share/fonts/
-      fi
       cd .. || return 1
     done
+    cd || return 1
   fi
 }
 
