@@ -42,8 +42,6 @@ elif [ "$(readlink /proc/$$/exe)" = "/usr/bin/zsh" ]; then
   source /usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 fi
 
-export FZF_DEFAULT_OPTS='--color=fg:#f8f8f2,bg:#282a36,hl:#bd93f9 --color=fg+:#f8f8f2,bg+:#44475a,hl+:#bd93f9 --color=info:#ffb86c,prompt:#50fa7b,pointer:#ff79c6 --color=marker:#ff79c6,spinner:#ffb86c,header:#6272a4'
-
 ###if [ "$(env | grep XDG_CURRENT_DESKTOP | awk 'BEGIN { FS = "=" } ; { print $2 }')" = "KDE" ] && [ "$(echo $(pgrep latte-dock &>/dev/null) $?)" -eq 1 ]; then
 ###(latte-dock &)
 ###fi
