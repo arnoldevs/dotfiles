@@ -42,4 +42,3 @@ if [ "$(
 )" -eq 0 ]; then
   alias rain='rusty-rain -C 0,139,139 -sc jap'
 fi
-
