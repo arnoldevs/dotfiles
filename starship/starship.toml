@@ -23,8 +23,8 @@ $cmd_duration\
 \n$character"""
 
 [character]
-error_symbol = '[➜](bold #ff5555)'
-success_symbol = '[➜](bold #50fa7b)'
+error_symbol = '[➜](bold #cc241d)'
+success_symbol = '[➜](bold #98971a)'
 
 [directory]
 style = "fg:#394260 bg:#769ff0"
@@ -33,7 +33,7 @@ truncation_length = 3
 truncation_symbol = "…/"
 
 [directory.substitutions]
-"Documents" = " "
+"Documents" = "󰈙 "
 "Downloads" = " "
 "Music" = " "
 "Pictures" = " "

@@ -1,3 +1,5 @@
 #!/usr/bin/env bash
 
-echo '--theme="Monokai Extended"' > ~/.config/bat/config
+mkdir -p ~/.config/bat
+
+echo '--theme="gruvbox-dark"' > ~/.config/bat/config

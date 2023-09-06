@@ -37,7 +37,7 @@ set $screen_timeout 60
 #
 # Default wallpaper (more resolutions are available in /usr/share/backgrounds/sway/)
 # Requires: desktop-backgrounds-compat, swaybg
-output * bg /usr/share/backgrounds/default.png fill
+output * bg "$HOME/.config/sway/backgrounds/cornered-stairs.svg" fill
 #
 # Example configuration:
 #
@@ -103,30 +103,36 @@ input "type:touchpad" {
     bindsym $mod+Shift+c reload
 
     # Exit sway (logs you out of your Wayland session)
-    bindsym $mod+Shift+e exec swaynag -t warning -m 'You pressed the exit shortcut. Do you really want to exit sway? This will end your Wayland session.' -B 'Yes, exit sway' 'swaymsg exit'
-    
+    bindsym $mod+Shift+e exec swaynag -t warning -m 'You pressed the exit shortcut. Do you really want to exit sway?' -B 'Yes, exit sway' 'swaymsg exit' \
+    -B 'Shutdown' 'systemctl poweroff' \
+    -B 'Suspend' 'systemctl suspend' \
+    -B 'Reboot' 'systemctl reboot'
+
     # Lock Wayland session
     bindsym $mod+Shift+x exec loginctl lock-session
-    
+
     # Suspend the machine
     bindsym $mod+Shift+s exec systemctl suspend
 
     # Reboot the machine
     bindsym $mod+Shift+r exec systemctl reboot
-    
+
     # Turn off the machine
     bindsym $mod+Shift+p exec systemctl poweroff
 #
 # Personal applications
 #
     # Start your preferred web browser
-    bindsym $mod+Shift+b exec $web 
+    bindsym $mod+Shift+w exec $web 
 
     # Start your preferred file explorer
     bindsym $mod+Shift+f exec $file
 
     # Start your preferred text editor
     bindsym $mod+Shift+t exec $text
+
+    # HTML color picker
+    bindsym $mod+ctrl+p exec grim -g "$(slurp -p)" -t ppm - | convert - -format '%[pixel:p{0,0}]' txt:- | tail -n 1 | cut -d ' ' -f 4 | wl-copy
 #
 # Moving around:
 #
