@@ -1,102 +1,230 @@
 format = """
-[░▒▓](#a3aed2)\
-[  ](bg:#a3aed2 fg:#090c0c)\
-[](bg:#769ff0 fg:#a3aed2)\
+[](#98971a)\
+$os\
+$username\
+[](bg:#d79921 fg:#98971a)\
 $directory\
-[](fg:#769ff0 bg:#394260)\
+[](fg:#d79921 bg:#689d6a)\
 $git_branch\
 $git_status\
-[](fg:#394260 bg:#212736)\
-$nodejs\
-$java\
-$python\
-$docker_context\
+[](fg:#689d6a bg:#b16286)\
 $c\
-$lua\
-$rust\
+$elixir\
+$elm\
 $golang\
+$gradle\
+$haskell\
+$java\
+$julia\
+$lua\
+$nodejs\
+$nim\
 $php\
-[](fg:#212736 bg:#1d2230)\
+$python\
+$rust\
+$scala\
+$sudo\
+[](fg:#b16286 bg:#458588)\
+$hostname\
+$docker_context\
+[](fg:#458588 bg:#928374)\
 $time\
-[ ](fg:#1d2230)\
 $cmd_duration\
-\n$character"""
-
+[ ](fg:#928374)\
+\n$character\
+"""
 [character]
 error_symbol = '[➜](bold #cc241d)'
 success_symbol = '[➜](bold #98971a)'
 
+# Disable the blank line at the start of the prompt
+# add_newline = false
+
+# You can also replace your username with a neat symbol like   or disable this
+# and use the os module below
+[username]
+show_always = true
+style_user = "bg:#98971a fg:#ebdbb2"
+style_root = "bg:#98971a fg:#ebdbb2"
+format = '[$user ]($style)'
+disabled = true
+
+# An alternative to the username module which displays a symbol that
+# represents the current operating system
+[os]
+style = "bg:#98971a fg:#ebdbb2"
+format = "[ $symbol ]($style)"
+disabled = false # Disabled by default
+
+[os.symbols]
+Alpaquita = " "
+Alpine = " "
+Amazon = " "
+Android = " "
+Arch = " "
+Artix = " "
+CentOS = " "
+Debian = " "
+DragonFly = " "
+Emscripten = " "
+EndeavourOS = " "
+Fedora = " "
+FreeBSD = " "
+Garuda = "󰛓 "
+Gentoo = " "
+HardenedBSD = "󰞌 "
+Illumos = "󰈸 "
+Linux = " "
+Mabox = " "
+Macos = " "
+Manjaro = " "
+Mariner = " "
+MidnightBSD = " "
+Mint = " "
+NetBSD = " "
+NixOS = " "
+OpenBSD = "󰈺 "
+openSUSE = " "
+OracleLinux = "󰌷 "
+Pop = " "
+Raspbian = " "
+Redhat = " "
+RedHatEnterprise = " "
+Redox = "󰀘 "
+Solus = "󰠳 "
+SUSE = " "
+Ubuntu = " "
+Unknown = " "
+Windows = "󰍲 "
+
 [directory]
-style = "fg:#394260 bg:#769ff0"
+style = "bg:#d79921 fg:#3c3836"
 format = "[ $path ]($style)"
 truncation_length = 3
 truncation_symbol = "…/"
 
+# Here is how you can shorten some long paths by text replacement
+# similar to mapped_locations in Oh My Posh:
 [directory.substitutions]
 "Documents" = "󰈙 "
 "Downloads" = " "
 "Music" = " "
 "Pictures" = " "
+# Keep in mind that the order matters. For example:
+# "Important Documents" = " 󰈙 "
+# will not be replaced, because "Documents" was already substituted before.
+# So either put "Important Documents" before "Documents" or use the substituted version:
+# "Important 󰈙 " = " 󰈙 "
+
+[c]
+symbol = " "
+style = "bg:#b16286 fg:#ebdbb2"
+format = '[ $symbol ($version) ]($style)'
+
+[cmd_duration]
+disabled = false
+show_notifications = true
+style = "bg:#928374 fg:#ebdbb2"
+format = '[ 󱦟 took $duration ]($style)'
+
+[docker_context]
+symbol = " "
+style = "bg:#458588 fg:#ebdbb2"
+format = '[ $symbol $context ]($style) $path'
+
+[elixir]
+symbol = " "
+style = "bg:#b16286 fg:#ebdbb2"
+format = '[ $symbol ($version) ]($style)'
+
+[elm]
+symbol = " "
+style = "bg:#b16286 fg:#ebdbb2"
+format = '[ $symbol ($version) ]($style)'
 
 [git_branch]
 symbol = ""
-style = "bg:#394260"
-format = '[[ $symbol $branch ](fg:#769ff0 bg:#394260)]($style)'
+style = "bg:#689d6a fg:#ebdbb2"
+format = '[ $symbol $branch ]($style)'
 
 [git_status]
-style = "bg:#394260"
-format = '[[($all_status$ahead_behind )](fg:#769ff0 bg:#394260)]($style)'
-
-[nodejs]
-symbol = ""
-style = "bg:#212736"
-format = '[[ $symbol ($version) ](fg:#769ff0 bg:#212736)]($style)'
-
-[rust]
-symbol = ""
-style = "bg:#212736"
-format = '[[ $symbol ($version) ](fg:#769ff0 bg:#212736)]($style)'
+style = "bg:#689d6a fg:#ebdbb2"
+format = '[$all_status$ahead_behind ]($style)'
 
 [golang]
-symbol = "ﳑ"
-style = "bg:#212736"
-format = '[[ $symbol ($version) ](fg:#769ff0 bg:#212736)]($style)'
+symbol = " "
+style = "bg:#b16286 fg:#ebdbb2"
+format = '[ $symbol ($version) ]($style)'
 
-[php]
-symbol = ""
-style = "bg:#212736"
-format = '[[ $symbol ($version) ](fg:#769ff0 bg:#212736)]($style)'
+[gradle]
+style = "bg:#b16286 fg:#ebdbb2"
+format = '[ $symbol ($version) ]($style)'
 
-[c]
-symbol = "C"
-style = "bg:#212736"
-format = '[[ $symbol ($version) ](fg:#769ff0 bg:#212736)]($style)'
+[haskell]
+symbol = " "
+style = "bg:#b16286 fg:#ebdbb2"
+format = '[ $symbol ($version) ]($style)'
+
+[hostname]
+ssh_only = true
+ssh_symbol = "󰇧 "
+style = "bg:#458588 fg:#ebdbb2"
+format = '[$ssh_symbol$hostname]($style)'
 
 [java]
-symbol = "☕"
-style = "bg:#212736"
-format = '[[ $symbol ($version) ](fg:#769ff0 bg:#212736)]($style)'
+symbol = " "
+style = "bg:#b16286 fg:#ebdbb2"
+format = '[ $symbol ($version) ]($style)'
 
-[docker_context]
-symbol = "🐳"
-style = "bg:#212736"
-format = '[[ $symbol ($version) ](fg:#769ff0 bg:#212736)]($style)'
+[julia]
+symbol = " "
+style = "bg:#b16286 fg:#ebdbb2"
+format = '[ $symbol ($version) ]($style)'
 
 [lua]
-symbol = "🌙"
-style = "bg:#212736"
-format = '[[ $symbol ($version) ](fg:#769ff0 bg:#212736)]($style)'
+symbol = " "
+style = "bg:#b16286 fg:#ebdbb2"
+format = '[ $symbol ($version) ]($style)'
+
+[nodejs]
+symbol = "󰎙 "
+style = "bg:#b16286 fg:#ebdbb2"
+format = '[ $symbol ($version) ]($style)'
+
+[nim]
+symbol = "󰆥 "
+style = "bg:#b16286 fg:#ebdbb2"
+format = '[ $symbol ($version) ]($style)'
+
+[php]
+symbol = " "
+style = "bg:#b16286 fg:#ebdbb2"
+format = '[ $symbol ($version) ]($style)'
 
 [python]
-symbol = "🐍"
-style = "bg:#212736"
-format = '[[ $symbol ($version) ](fg:#769ff0 bg:#212736)]($style)'
+symbol = " "
+style = "bg:#b16286 fg:#ebdbb2"
+format = '[ $symbol ($version) ]($style)'
+
+[rust]
+symbol = " "
+style = "bg:#b16286 fg:#ebdbb2"
+format = '[ $symbol ($version) ]($style)'
+
+[scala]
+symbol = " "
+style = "bg:#b16286 fg:#ebdbb2"
+format = '[ $symbol ($version) ]($style)'
+
+[sudo]
+symbol = "  "
+style = "bg:#b16286 fg:#ebdbb2"
+format = '[ $symbol]($style)'
+disabled = false
 
 [time]
-disabled = false
+disabled = true
 time_format = "%R" # Hour:Minute Format
-style = "bg:#1d2230"
-format = '[[  $time ](fg:#a0a9cb bg:#1d2230)]($style)'
+style = "bg:#928374 fg:#ebdbb2"
+format = '[   $time ]($style)'
 
-[cmd_duration]
-format = 'took [$duration](bold #a0a9cb)'

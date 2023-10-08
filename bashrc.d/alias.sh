@@ -40,5 +40,5 @@ if [ "$(
   which rusty-rain &>/dev/null
   echo $?
 )" -eq 0 ]; then
-  alias rain='rusty-rain -C 0,139,139 -sc jap'
+  alias rain='rusty-rain -C 215,153,33 -sc jap'
 fi

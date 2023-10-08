@@ -33,7 +33,12 @@ if [[ -d "$HOME/.nvm" ]]; then
   [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion" ## This loads nvm bash_completion
 fi
 
-[[ -d "$HOME/.cargo" ]] && . "$HOME/.cargo/env"
+if [[ -d "$HOME/.cargo" ]]; then
+  . "$HOME/.cargo/env"
+  for file in ~/.bash_completion.d/*.bash_completion; do
+    . "$file"
+  done
+fi
 
 if [ "$(readlink /proc/$$/exe)" = "/usr/bin/bash" ]; then
   [[ -f ~/.bash-preexec.sh ]] && source ~/.bash-preexec.sh

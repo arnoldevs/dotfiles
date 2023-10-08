@@ -5,6 +5,7 @@ update() {
   local endColour="\033[0m\e[0m"
   local redColour="\e[0;31m\033[1m"
   local yellowColour="\e[0;33m\033[1m"
+  local COLOR_SCHEME="gruvbox"
 
   declare -a updates=(node_js neovim rust system_updates flatpak_packages python_user starship_rs preexec_bash customization)
   declare -a options=("$@")
@@ -129,6 +130,8 @@ update() {
       for DIR in *; do
         cd "$DIR" || return 1
         git pull --rebase
+        [[ "$DIR" == "colloid-gtk-theme" ]] && ./install.sh --tweaks $COLOR_SCHEME
+        [[ "$DIR" == "colloid-icon-theme" ]] && ./install.sh
         cd .. || return 1
       done
       cd || return 1
