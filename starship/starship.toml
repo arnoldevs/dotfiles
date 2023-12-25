@@ -124,6 +124,7 @@ format = '[ $symbol ($version) ]($style)'
 [cmd_duration]
 disabled = false
 show_notifications = true
+min_time_to_notify = 60000
 style = "bg:#928374 fg:#ebdbb2"
 format = '[ 󱦟 took $duration ]($style)'
 
