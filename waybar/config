@@ -62,7 +62,7 @@
             "on": " "
         },
         "random-icons": {
-            "off": "<span color=\"#f53c3c\"></span> ",
+            "off": "<span color=\"#fb4934\"></span> ",
             "on": " "
         },
         "repeat-icons": {
@@ -100,11 +100,11 @@
                     "on-scroll"     : 1,
                     "on-click-right": "mode",
                     "format": {
-                              "months":     "<span color='#ffead3'><b>{}</b></span>",
-                              "days":       "<span color='#ecc6d9'><b>{}</b></span>",
-                              "weeks":      "<span color='#99ffdd'><b>W{}</b></span>",
-                              "weekdays":   "<span color='#ffcc66'><b>{}</b></span>",
-                              "today":      "<span color='#ff6699'><b><u>{}</u></b></span>"
+                              "months":     "<span color='#ebdbb2'><b>{}</b></span>",
+                              "days":       "<span color='#d3869b'><b>{}</b></span>",
+                              "weeks":      "<span color='#83a591'><b>W{}</b></span>",
+                              "weekdays":   "<span color='#fabd2f'><b>{}</b></span>",
+                              "today":      "<span color='#b8bb26'><b><u>{}</u></b></span>"
                               }
                     },
         "actions":  {
