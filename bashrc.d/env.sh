@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-## Add and uncomment the following line to bashrc or zshrc as appropriate if it does not exist
+## Add and uncomment the following line to bashrc if it does not exist
 # if [ -d ~/.bashrc.d ]; then
 # 	for rc in ~/.bashrc.d/*; do
 # 		if [ -f "$rc" ]; then
@@ -19,13 +19,13 @@ if [[ $(
   export PATH="$JAVA_HOME/bin:$PATH"
 fi
 
-# if [[ $(
-#   which nvim &>/dev/null
-#   echo $?
-# ) -eq 0 ]]; then
-#   export EDITOR="$(which nvim)"
-#   export VISUAL="$(which nvim)"
-# fi
+if [[ $(
+  which nvim &>/dev/null
+  echo $?
+) -eq 0 ]]; then
+  export EDITOR="$(which nvim)"
+  export VISUAL="$(which nvim)"
+fi
 
 if [[ -d "$HOME/.nvm" ]]; then
   export NVM_DIR="$HOME/.nvm"
@@ -61,7 +61,7 @@ if [ "$(readlink /proc/$$/exe)" = "/usr/bin/bash" ]; then
   ) -eq 0 ]] && eval "$(zoxide init bash)"
 fi
 
-# [[ $(
-#   which qt5ct &>/dev/null
-#   echo $?
-# ) -eq 0 ]] && export QT_QPA_PLATFORMTHEME='qt5ct'
+[[ $(
+  which qt5ct &>/dev/null
+  echo $?
+) -eq 0 ]] && export QT_QPA_PLATFORMTHEME='qt5ct'

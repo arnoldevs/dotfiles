@@ -13,7 +13,7 @@ update() {
 
   info() {
     echo -e "Usage: update [options]\n\nList of main commands:\n"
-    echo -e "customization\nflatpak\nneovim\nnodejs\npreexec\nrust\nstarship\nsystem"
+    echo -e "customization\nflatpak\nneovim\nnodejs\npreexec\nrust\nstarship\nsystem\nall"
   }
 
   node_js() {
@@ -47,6 +47,7 @@ update() {
         rm nvim.appimage
       fi
     fi
+    if type -P lvim > /dev/null; then lvim +LvimUpdate +q; fi
   }
 
   rust() {
@@ -70,6 +71,7 @@ update() {
   }
 
   system_updates() {
+    sudo fwupdmgr update
     if [ "$(
       which nala &>/dev/null
       echo $?
@@ -119,6 +121,14 @@ update() {
     if [[ -f ~/.bash-preexec.sh ]]; then
       echo -e "${greenColour}Updating bash-preexec${endColour}"
       curl https://raw.githubusercontent.com/rcaloras/bash-preexec/master/bash-preexec.sh -o ~/.bash-preexec.sh
+    fi
+    if [[ -d ~/.ble.sh ]]; then
+      cd ~/.ble.sh || return 1   # <-- enter the git repository you already have
+      git pull
+      git submodule update --recursive --remote
+      make
+      make INSDIR="$HOME/.local/share/blesh" install
+      cd || return 1
     fi
   }
 
