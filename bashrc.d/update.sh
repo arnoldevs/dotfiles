@@ -35,19 +35,26 @@ update() {
   }
 
   neovim() {
-    if [[ $(which nvim) = "/usr/local/bin/nvim" ]]; then
+    if [[ -d "/opt/nvim-linux64" ]]; then
+      curl -LO https://github.com/neovim/neovim/releases/latest/download/nvim-linux64.tar.gz
+      sudo rm -rf /opt/nvim
+      sudo tar -C /opt -xzf nvim-linux64.tar.gz
+      rm nvim-linux64.tar.gz
+    fi
+    if [[ -f "/opt/nvim/nvim.appimage" ]]; then
       curl -LO https://github.com/neovim/neovim/releases/latest/download/nvim.appimage
-      if [ ! "$(md5sum /opt/nvim.appimage | awk '{print $1}')" = "$(md5sum "$HOME/nvim.appimage" | awk '{print $1}')" ]; then
+      if [ ! "$(md5sum "/opt/nvim/nvim.appimage" | awk '{print $1}')" = "$(md5sum "$HOME/nvim.appimage" | awk '{print $1}')" ]; then
         echo -e "${yellowColour}Neovim update found!${endColour}"
         chmod u+x nvim.appimage
-        sudo rm /opt/nvim.appimage
-        sudo mv "$HOME/nvim.appimage" /opt/
+        sudo rm /opt/nvim/nvim.appimage
+        sudo mv "$HOME/nvim.appimage" /opt/nvim/
+        sudo ln -sf /opt/nvim/nvim.appimage /usr/local/bin/nvim
       else
         echo "Nothing to do."
         rm nvim.appimage
       fi
     fi
-    if type -P lvim > /dev/null; then lvim +LvimUpdate +q; fi
+    if type -P lvim >/dev/null; then lvim +LvimUpdate +q; fi
   }
 
   rust() {
@@ -71,7 +78,8 @@ update() {
   }
 
   system_updates() {
-    sudo fwupdmgr update
+    if type -P fwupdmgr >/dev/null; then sudo fwupdmgr update; fi
+    if type -P apt >/dev/null; then sudo apt update && sudo apt upgrade; fi
     if [ "$(
       which nala &>/dev/null
       echo $?
@@ -123,7 +131,7 @@ update() {
       curl https://raw.githubusercontent.com/rcaloras/bash-preexec/master/bash-preexec.sh -o ~/.bash-preexec.sh
     fi
     if [[ -d ~/.ble.sh ]]; then
-      cd ~/.ble.sh || return 1   # <-- enter the git repository you already have
+      cd ~/.ble.sh || return 1 # <-- enter the git repository you already have
       git pull
       git submodule update --recursive --remote
       make
