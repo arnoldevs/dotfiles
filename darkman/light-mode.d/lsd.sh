@@ -2,7 +2,7 @@
 
 mkdir -p ~/.config/lsd
 
-cat <<'EOF' > ~/.config/lsd/config.yaml
+cat <<'EOF' >~/.config/lsd/config.yaml
 color:
   when: never 
 EOF

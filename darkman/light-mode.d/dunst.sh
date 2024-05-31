@@ -2,7 +2,7 @@
 
 mkdir -p ~/.config/dunst
 
-cat <<'EOF' > ~/.config/dunst/dunstrc
+cat <<'EOF' >~/.config/dunst/dunstrc
 # See dunst(5) for all configuration options
 
 [global]

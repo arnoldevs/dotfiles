@@ -15,7 +15,7 @@ export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion" # This loads nvm bash_completion
 
 if type -P javac >/dev/null; then
-  export JAVA_HOME="/usr/lib/jvm/java-openjdk"
+  export JAVA_HOME="/usr/lib/jvm/default-java"
   export PATH="$JAVA_HOME/bin:$PATH"
 fi
 
@@ -38,3 +38,12 @@ if type -P atuin >/dev/null; then eval "$(atuin init bash)"; fi
 [[ -f "$HOME/.bash-preexec.sh" ]] && source "$HOME/.bash-preexec.sh"
 
 if type -P fzf >/dev/null; then source /usr/share/doc/fzf/examples/key-bindings.bash; fi
+
+if type -P go >/dev/null; then
+  [[ -d /usr/local/go ]] && export PATH=$PATH:/usr/local/go/bin
+  export GOPATH=$HOME/.go
+  export GOBIN=$GOPATH/bin
+  export PATH=$PATH:$GOBIN
+fi
+
+[[ -d "$HOME/.dotfiles" ]] && . "$HOME/.dotfiles/bashrc.d/update.sh"

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Sway and VSCode don't get along very well at the moment and it doesn't detect the automatic switching of day/night mode 
+# Sway and VSCode don't get along very well at the moment and it doesn't detect the automatic switching of day/night mode
 
 # Normal Mode
 sed -i 's/Gruvbox Light Medium/Gruvbox Dark Medium/' ~/.config/Code/User/settings.json

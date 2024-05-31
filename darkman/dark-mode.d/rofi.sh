@@ -2,7 +2,7 @@
 
 mkdir -p ~/.config/rofi
 
-cat <<'EOF' > ~/.config/rofi/config.rasi
+cat <<'EOF' >~/.config/rofi/config.rasi
 @theme "/usr/share/rofi/themes/gruvbox-dark.rasi"
 
 configuration {

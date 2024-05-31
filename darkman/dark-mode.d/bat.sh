@@ -2,4 +2,4 @@
 
 mkdir -p ~/.config/bat
 
-echo '--theme="gruvbox-dark"' > ~/.config/bat/config
+echo '--theme="gruvbox-dark"' >~/.config/bat/config
