@@ -46,4 +46,4 @@ if type -P go >/dev/null; then
   export PATH=$PATH:$GOBIN
 fi
 
-[[ -d "$HOME/.dotfiles" ]] && . "$HOME/.dotfiles/bashrc.d/update.sh"
+[[ -d "$HOME/.dotfiles" ]] && . "$HOME/.dotfiles/bashrc.d/mu.sh"
