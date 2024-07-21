@@ -32,8 +32,8 @@ if [ "$(
   echo $?
 )" -eq 0 ]; then
   alias cat='bat'
-  alias catn='/usr/bin/cat'
-  alias catnl='bat --paging=never'
+  alias catd='/usr/bin/cat'
+  alias catpn='bat --paging=never'
 fi
 
 if [ "$(

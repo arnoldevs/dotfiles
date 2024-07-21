@@ -69,7 +69,7 @@ nerdfonts_u() {
 }
 
 lazygit_u() {
-	if type -P lazygit >/dev/null; then
+	if [[ $(which lazygit 2>/dev/null) = "/usr/local/bin/lazygit" ]]; then
 		echo "lazygit is already installed."
 		LAZYGIT_VERSION=$(curl -s "https://api.github.com/repos/jesseduffield/lazygit/releases/latest" | grep -Po '"tag_name": "v\K[^"]*')
 		echo "Updating Lazygit to v${LAZYGIT_VERSION}..."
@@ -222,8 +222,6 @@ darkman_u() {
 		cd || return 1
 		echo "Enabling and starting Darkman service for your user session..."
 		systemctl --user enable --now darkman.service
-	else
-		echo "Custom Darkman directory not found at $CUSTOM_DIR/darkman"
 	fi
 }
 
@@ -307,8 +305,8 @@ node_u() {
 			echo "  Current version is not the latest LTS."
 			echo "  Reinstalling latest LTS version..."
 			nvm install --reinstall-packages-from=current 'lts/*'
-			echo "  Installing latest npm version..."
-			nvm install-latest-npm
+			# echo "  Installing latest npm version..."
+			# nvm install-latest-npm
 		else
 			echo "  Currently using the latest LTS version."
 
@@ -319,4 +317,89 @@ node_u() {
 		echo "NVM directory not found at $HOME/.nvm. NVM might not be installed."
 
 	fi
+}
+
+updates() {
+  declare -a updates=(minegrub_u nerdfonts_u lazygit_u system_u flatpak_u colloid_u neovim_u starship_u node_u rust_u preexec_u python_u darkman_u)
+  declare -a options=("$@")
+  IFS=" " read -r -a options <<<"$@"
+
+  info() {
+    echo -e "Usage: updates [options]\n\nList of main commands:\n"
+    for i in "${updates[@]}"; do
+      echo "$i" | cut -d '_' -f 1
+    done
+    echo -e "\n all: Release all updates"
+    echo " -h: Displays this help message"
+  }
+
+  if [[ ${#options[@]} -gt 0 ]]; then
+    for o in "${options[@]}"; do
+      case "$o" in
+      all)
+        echo "Running all updates..."
+        for i in "${updates[@]}"; do
+          echo "  - Executing: $i" | cut -d '_' -f 1
+          $i
+        done
+        ;;
+      minegrub)
+        minegrub_u
+        ;;
+      flatpak)
+        flatpak_u
+        ;;
+      neovim)
+        neovim_u
+        ;;
+      node)
+        node_u
+        ;;
+      rust)
+        rust_u
+        ;;
+      nerdfonts)
+        nerdfonts_u
+        ;;
+      system)
+        system_u
+        ;;
+      lazygit)
+        lazygit_u
+        ;;
+      colloid)
+        colloid_u
+        ;;
+      darkman)
+        darkman_u
+        ;;
+      starship)
+        starship_u
+        ;;
+      preexec)
+        preexec_u
+        ;;
+      python)
+        python_u
+        ;;
+      *)
+        if [[ "$o" != "-h" ]]; then
+          echo "Invalid option: '$o'. Use 'updates -h' for help."
+        fi
+        ;;
+      esac
+    done
+  else
+    # No options provided, display help
+    info
+  fi
+
+  while getopts ":h" opt; do
+    case "$opt" in
+    h)
+      info
+      ;;
+    *) ;;
+    esac
+  done
 }
