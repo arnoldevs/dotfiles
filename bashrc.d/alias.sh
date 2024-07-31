@@ -26,13 +26,20 @@ if [ "$(
   alias kitty-diff="kitty +kitten diff"
 fi
 
+if [ "$(
+  which wezterm &>/dev/null
+  echo $?
+)" -eq 0 ]; then
+  alias icat="wezterm imgcat"
+fi
+
 ## The binary can be called bat or batcat depending on the distribution
 if [ "$(
   which bat &>/dev/null
   echo $?
 )" -eq 0 ]; then
   alias cat='bat'
-  alias catd='/usr/bin/cat'
+  alias catp='/usr/bin/cat'
   alias catpn='bat --paging=never'
 fi
 
