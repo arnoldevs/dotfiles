@@ -7,8 +7,8 @@ config.min_scroll_bar_height = "1cell"
 config.warn_about_missing_glyphs = false
 config.window_decorations = "INTEGRATED_BUTTONS|RESIZE"
 config.integrated_title_button_style = "Gnome"
-config.hide_tab_bar_if_only_one_tab = true
 config.audible_bell = "SystemBeep" ]]
+config.hide_tab_bar_if_only_one_tab = true
 config.font = wezterm.font("JetBrainsMono Nerd Font")
 config.window_background_opacity = 0.95
 
