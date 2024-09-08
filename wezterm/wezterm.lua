@@ -10,7 +10,7 @@ config.integrated_title_button_style = "Gnome"
 config.audible_bell = "SystemBeep" ]]
 config.hide_tab_bar_if_only_one_tab = true
 config.font = wezterm.font("JetBrainsMono Nerd Font")
-config.window_background_opacity = 0.95
+config.window_background_opacity = 0.85
 
 function get_appearance()
 	if wezterm.gui then
