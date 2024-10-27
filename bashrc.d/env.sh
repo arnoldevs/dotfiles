@@ -35,7 +35,7 @@ fi
 
 [[ "$(readlink /proc/$$/exe)" = "/usr/bin/bash" ]] && bind 'set completion-ignore-case on'
 
-if type -P zellij >/dev/null; then eval "$(zellij setup --generate-auto-start bash)"; fi
+# if type -P zellij >/dev/null; then eval "$(zellij setup --generate-auto-start bash)"; fi
 
 if type -P starship >/dev/null; then eval "$(starship init bash)"; fi
 

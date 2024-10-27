@@ -202,6 +202,7 @@ rust_u() {
       fi
       echo "Invalid input. Please enter 'Y' or 'N'."
     done
+    source ~/.bashrc
   else
     echo "Cargo directory not found at $HOME/.cargo. Rust may not be installed."
   fi
