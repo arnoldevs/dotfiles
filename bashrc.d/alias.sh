@@ -35,12 +35,12 @@ fi
 
 ## The binary can be called bat or batcat depending on the distribution
 if [ "$(
-  which bat &>/dev/null
+  which batcat &>/dev/null
   echo $?
 )" -eq 0 ]; then
-  alias cat='bat'
+  alias cat='batcat'
   alias catp='/usr/bin/cat'
-  alias catpn='bat --paging=never'
+  alias catpn='batcat --paging=never'
 fi
 
 if [ "$(
