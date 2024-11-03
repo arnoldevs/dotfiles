@@ -10,12 +10,15 @@
 # fi
 # unset rc
 
+# In Fedora only run
+# ln -s ~/.dotfiles/bashrc.d ~/.bashrc.d
+
 export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"                   # This loads nvm
 [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion" # This loads nvm bash_completion
 
 if type -P javac >/dev/null; then
-  export JAVA_HOME="/usr/lib/jvm/default-java" # dnf option "/usr/lib/jvm/java-openjdk"
+  export JAVA_HOME="/usr/lib/jvm/java-openjdk" # apt option "/usr/lib/jvm/default-java"
   export PATH="$JAVA_HOME/bin:$PATH"
 fi
 
@@ -40,7 +43,7 @@ if type -P atuin >/dev/null; then eval "$(atuin init bash)"; fi
 [[ -f "$HOME/.bash-preexec.sh" ]] && source "$HOME/.bash-preexec.sh"
 
 # apt fzf < 0.48.0 source /usr/share/doc/fzf/examples/key-bindings.bash; || > 0.48.0 eval "$(fzf --bash)";
-if type -P fzf >/dev/null; then source /usr/share/doc/fzf/examples/key-bindings.bash; fi 
+if type -P fzf >/dev/null; then eval "$(fzf --bash)"; fi
 
 if type -P go >/dev/null; then
   [[ -d /usr/local/go ]] && export PATH=$PATH:/usr/local/go/bin
