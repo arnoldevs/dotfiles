@@ -3,3 +3,4 @@ kitty/current-theme.conf
 kitty/theme.conf
 bashrc.d/colors.sh
 sway/config.d/90-sway-colors.conf
+cava/shaders/
