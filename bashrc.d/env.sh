@@ -18,7 +18,16 @@ export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion" # This loads nvm bash_completion
 
 if type -P javac >/dev/null; then
-  export JAVA_HOME="/usr/lib/jvm/java-openjdk" # apt option "/usr/lib/jvm/default-java"
+  for jdk_dir in /usr/lib/jvm/*; do
+    if [[ -d "$jdk_dir" && "$jdk_dir" == *temurin* ]]; then
+      JAVA_HOME="$jdk_dir"
+      break
+    elif [[ -d "$jdk_dir" && "$jdk_dir" == java-openjdk ]]; then
+      JAVA_HOME="$jdk_dir"
+      break
+    fi
+  done
+  # export JAVA_HOME="/usr/lib/jvm/java-openjdk" # apt option "/usr/lib/jvm/default-java"
   export PATH="$JAVA_HOME/bin:$PATH"
 fi
 
