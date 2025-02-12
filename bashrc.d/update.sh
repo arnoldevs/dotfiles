@@ -2,7 +2,7 @@
 
 CUSTOM_DIR="$HOME/.customization"
 scheme="gruvbox"
-themeVariant="yellow"
+themeVariant="green"
 # Function to check directory existence and change directory
 check_and_cd() {
   if [[ ! -d "$1" ]]; then
@@ -92,6 +92,8 @@ system_u() {
   if type -P apt >/dev/null; then
     echo "Updating system with apt..."
     sudo apt update && sudo apt upgrade
+    echo "Removing unused packages..."
+    sudo apt autoremove
   fi
   if [ "$(
     which nala &>/dev/null
@@ -272,7 +274,7 @@ colloid_u() {
         cd "$DIR" || return 1
         update_git_repo
         echo "Reinstalling.."
-        ./install.sh --theme $themeVariant --tweaks $scheme float
+        ./install.sh --theme $themeVariant --tweaks $scheme
         themeCamelCase=$(echo "$themeVariant" | sed 's/\b./\U&/g')
         schemeCamelCase=$(echo "$scheme" | sed 's/\b./\U&/g')
         ln -sf ~/.themes/Colloid-${themeCamelCase}-Dark-${schemeCamelCase}/gtk-4.0/* ~/.config/gtk-4.0/
@@ -288,6 +290,15 @@ colloid_u() {
         echo "Reinstalling Colloid cursors..."
         cd "$DIR/cursors/" || return 1
         ./install.sh
+        cd ~ || return 1
+      fi
+      if [[ "$(basename "$DIR")" == "Tela-icon-theme" ]]; then
+        echo "Updating Tela icon theme..."
+        cd "$DIR" || return 1
+        update_git_repo
+        mkdir -p "$HOME/.local/share/icons"
+        echo "Reinstalling..."
+        ./install.sh $themeVariant
         cd ~ || return 1
       fi
     done
