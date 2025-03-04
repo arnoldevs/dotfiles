@@ -32,10 +32,10 @@ export NVM_DIR="$HOME/.nvm"
 # fi
 
 ## APT option
-if type -P javac >/dev/null; then
-    JAVA_HOME="/usr/lib/jvm/default-java"
-    export PATH="$JAVA_HOME/bin:$PATH"
-fi
+# if type -P javac >/dev/null; then
+#     JAVA_HOME="/usr/lib/jvm/default-java"
+#     export PATH="$JAVA_HOME/bin:$PATH"
+# fi
 
 [[ -d "/opt/nvim-linux64" ]] && export PATH="$PATH:/opt/nvim-linux64/bin"
 
@@ -58,7 +58,7 @@ if type -P atuin >/dev/null; then eval "$(atuin init bash)"; fi
 [[ -f "$HOME/.bash-preexec.sh" ]] && source "$HOME/.bash-preexec.sh"
 
 # apt fzf < 0.48.0 source /usr/share/doc/fzf/examples/key-bindings.bash; || > 0.48.0 eval "$(fzf --bash)";
-if type -P fzf >/dev/null; then source /usr/share/doc/fzf/examples/key-bindings.bash; fi
+if type -P fzf >/dev/null; then eval "$(fzf --bash)"; fi
 
 if type -P go >/dev/null; then
   [[ -d /usr/local/go ]] && export PATH=$PATH:/usr/local/go/bin

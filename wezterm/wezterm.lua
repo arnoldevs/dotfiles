@@ -10,6 +10,8 @@ config.window_background_opacity = 0.90
 config.warn_about_missing_glyphs = false
 config.enable_scroll_bar = true
 config.min_scroll_bar_height = "2cell"
+config.window_decorations = "INTEGRATED_BUTTONS|RESIZE"
+
 
 function get_appearance()
 	if wezterm.gui then
