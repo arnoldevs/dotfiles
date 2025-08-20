@@ -2,7 +2,7 @@
 
 CUSTOM_DIR="$HOME/.customization"
 scheme="gruvbox"
-themeVariant="green"
+themeVariant="red"
 # Function to check directory existence and change directory
 check_and_cd() {
   if [[ ! -d "$1" ]]; then
@@ -274,10 +274,13 @@ colloid_u() {
         cd "$DIR" || return 1
         update_git_repo
         echo "Reinstalling.."
-        ./install.sh --theme $themeVariant --tweaks $scheme
-        themeCamelCase=$(echo "$themeVariant" | sed 's/\b./\U&/g')
-        schemeCamelCase=$(echo "$scheme" | sed 's/\b./\U&/g')
-        ln -sf ~/.themes/Colloid-${themeCamelCase}-Dark-${schemeCamelCase}/gtk-4.0/* ~/.config/gtk-4.0/
+        ./install.sh --theme $themeVariant --color dark --libadwaita --tweaks $scheme float
+        # ./install.sh --theme $themeVariant --tweaks $scheme
+        # themeCamelCase=$(echo "$themeVariant" | sed 's/\b./\U&/g')
+        # schemeCamelCase=$(echo "$scheme" | sed 's/\b./\U&/g')
+        # ln -sf ~/.themes/Colloid-${themeCamelCase}-Dark-${schemeCamelCase}/gtk-4.0/* ~/.config/gtk-4.0/
+        echo "Fix for Flatpak..."
+        sudo flatpak override --filesystem=xdg-config/gtk-3.0 && sudo flatpak override --filesystem=xdg-config/gtk-4.0
         cd ~ || return 1
       fi
       if [[ "$(basename "$DIR")" == "Colloid-icon-theme" ]]; then
