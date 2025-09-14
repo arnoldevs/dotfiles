@@ -68,21 +68,6 @@ nerdfonts_u() {
   fi
 }
 
-lazygit_u() {
-  if [[ $(which lazygit 2>/dev/null) = "/usr/local/bin/lazygit" ]]; then
-    echo "lazygit is already installed."
-    LAZYGIT_VERSION=$(curl -s "https://api.github.com/repos/jesseduffield/lazygit/releases/latest" | grep -Po '"tag_name": "v\K[^"]*')
-    echo "Updating Lazygit to v${LAZYGIT_VERSION}..."
-    curl -Lo lazygit.tar.gz "https://github.com/jesseduffield/lazygit/releases/latest/download/lazygit_${LAZYGIT_VERSION}_Linux_x86_64.tar.gz"
-    echo "Extracting files..."
-    tar xf lazygit.tar.gz lazygit
-    echo "Installing lazygit to /usr/local/bin (requires sudo)..."
-    sudo install lazygit /usr/local/bin
-    echo "Cleaning up..."
-    rm lazygit*
-  fi
-}
-
 system_u() {
   # Identify package manager and perform updates
   if type -P fwupdmgr >/dev/null; then
@@ -137,34 +122,34 @@ flatpak_u() {
 }
 
 neovim_u() {
-  if [[ -d "/opt/nvim-linux64" ]]; then
-    echo "Existing NeoVim installation detected in /opt/nvim-linux64."
+  if [[ -d "/opt/nvim-linux-x86_64" ]]; then
+    echo "Existing NeoVim installation detected in /opt/nvim-linux-x86_64."
     echo "Downloading the latest NeoVim source..."
-    curl -LO https://github.com/neovim/neovim/releases/latest/download/nvim-linux64.tar.gz
+    curl -LO https://github.com/neovim/neovim/releases/latest/download/nvim-linux-x86_64.tar.gz
     sudo rm -rf /opt/nvim
     echo "Extracting downloaded source..."
-    sudo tar -C /opt -xzf nvim-linux64.tar.gz
+    sudo tar -C /opt -xzf nvim-linux-x86_64.tar.gz
     echo "Cleaning up..."
-    rm nvim-linux64.tar.gz
+    rm nvim-linux-x86_64.tar.gz
   fi
-  if [[ -f "/opt/nvim/nvim.appimage" ]]; then
-    echo "Existing NeoVim AppImage detected in /opt/nvim/nvim.appimage."
+  if [[ -f "/opt/nvim/nvim-linux-x86_64.appimage" ]]; then
+    echo "Existing NeoVim AppImage detected in /opt/nvim/nvim-linux-x86_64.appimage."
     echo "Downloading and verifying the latest NeoVim AppImage integrity..."
-    curl -LO https://github.com/neovim/neovim/releases/latest/download/nvim.appimage
+    curl -LO https://github.com/neovim/neovim/releases/latest/download/nvim-linux-x86_64.appimage
 
-    existing_checksum=$(md5sum "/opt/nvim/nvim.appimage" | awk '{print $1}')
-    downloaded_checksum=$(md5sum ./nvim.appimage | awk '{print $1}')
+    existing_checksum=$(md5sum "/opt/nvim/nvim-linux-x86_64.appimage" | awk '{print $1}')
+    downloaded_checksum=$(md5sum ./nvim-linux-x86_64.appimage | awk '{print $1}')
     if [ "$existing_checksum" != "$downloaded_checksum" ]; then
       echo "Checksums differ. Updating NeoVim AppImage..."
-      chmod u+x nvim.appimage
-      sudo rm /opt/nvim/nvim.appimage
-      sudo mv ./nvim.appimage /opt/nvim/
-      sudo ln -sf /opt/nvim/nvim.appimage /usr/local/bin/nvim
+      chmod u+x nvim-linux-x86_64.appimage
+      sudo rm /opt/nvim/nvim-linux-x86_64.appimage
+      sudo mv ./nvim-linux-x86_64.appimage /opt/nvim/
+      sudo ln -sf /opt/nvim/nvim-linux-x86_64.appimage /usr/local/bin/nvim
     else
       echo "Checksums match. Existing NeoVim AppImage is up-to-date."
     fi
     echo "Cleaning up..."
-    rm nvim.appimage
+    rm nvim-linux-x86_64.appimage
   fi
   if type -P lvim >/dev/null; then lvim +LvimUpdate +q; fi
 }
@@ -225,31 +210,6 @@ darkman_u() {
     cd || return 1
     echo "Enabling and starting Darkman service for your user session..."
     systemctl --user enable --now darkman.service
-  fi
-}
-
-starship_u() {
-  if [[ $(which starship 2>/dev/null) = "/usr/local/bin/starship" ]]; then
-    echo "Starship is already installed at /usr/local/bin/starship, Updating..."
-    curl -sS https://starship.rs/install.sh | sh
-  fi
-}
-
-preexec_u() {
-  if [[ -f ~/.bash-preexec.sh ]]; then
-    echo "Downloading bash-preexec.sh..."
-    curl https://raw.githubusercontent.com/rcaloras/bash-preexec/master/bash-preexec.sh -o ~/.bash-preexec.sh
-  fi
-  if [[ -d ~/.ble.sh ]]; then
-    echo "Updating ble.sh pre-exec hooks..."
-    cd ~/.ble.sh || return 1 # <-- enter the git repository you already have
-    update_git_repo
-    echo "Updating submodules..."
-    git submodule update --recursive --remote
-    echo "Building and installing ble.sh..."
-    make
-    make INSDIR="$HOME/.local/share/blesh" install
-    cd || return 1
   fi
 }
 
@@ -338,7 +298,7 @@ node_u() {
 }
 
 updates() {
-  declare -a updates=(minegrub_u nerdfonts_u lazygit_u system_u flatpak_u colloid_u neovim_u starship_u node_u rust_u preexec_u python_u darkman_u)
+  declare -a updates=(minegrub_u nerdfonts_u lazygit_u system_u flatpak_u colloid_u neovim_u node_u rust_u python_u darkman_u)
   declare -a options=("$@")
   IFS=" " read -r -a options <<<"$@"
 
@@ -382,20 +342,11 @@ updates() {
       system)
         system_u
         ;;
-      lazygit)
-        lazygit_u
-        ;;
       colloid)
         colloid_u
         ;;
       darkman)
         darkman_u
-        ;;
-      starship)
-        starship_u
-        ;;
-      preexec)
-        preexec_u
         ;;
       python)
         python_u

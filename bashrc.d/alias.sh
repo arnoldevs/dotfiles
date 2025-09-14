@@ -34,13 +34,18 @@ if [ "$(
 fi
 
 ## The binary can be called bat or batcat depending on the distribution
-if [ "$(
-  which bat &>/dev/null
-  echo $?
-)" -eq 0 ]; then
-  alias cat='bat'
+BAT_BIN=""
+
+if command -v batcat &>/dev/null; then
+  BAT_BIN="batcat"
+elif command -v bat &>/dev/null; then
+  BAT_BIN="bat"
+fi
+
+if [ -n "$BAT_BIN" ]; then
+  alias cat="$BAT_BIN"
   alias catp='/usr/bin/cat'
-  alias catpn='bat --paging=never'
+  alias catpn="$BAT_BIN --paging=never"
 fi
 
 if [ "$(
