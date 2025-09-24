@@ -17,6 +17,9 @@
 # In Fedora only run
 # ln -s ~/.dotfiles/bashrc.d ~/.bashrc.d
 
+#### LOCAL BINARIES ####
+[[ -d "$HOME/.local/bin" ]] && export PATH="$HOME/.local/bin:$PATH"
+
 #### CARGO RUST ####
 if [[ -d "$HOME/.cargo" ]]; then
   . "$HOME/.cargo/env"
@@ -66,7 +69,7 @@ else
 fi
 
 #### NEOVIM ####
-[[ -d "/opt/nvim-linux64" ]] && export PATH="$PATH:/opt/nvim-linux-x86_64/bin"
+[[ -d "/opt/nvim-linux-x86_64" ]] && export PATH="$PATH:/opt/nvim-linux-x86_64/bin"
 
 #### GOLANG ####
 if type -P go >/dev/null; then

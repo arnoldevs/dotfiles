@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
 
-CUSTOM_DIR="$HOME/.customization"
+CUSTOM_DIR="$HOME/.custom"
 scheme="gruvbox"
 themeVariant="red"
+
+# NON-SUDO FUNCTIONS
 # Function to check directory existence and change directory
 check_and_cd() {
   if [[ ! -d "$1" ]]; then
@@ -27,30 +29,6 @@ update_git_repo() {
   echo "  Git repository updated successfully."
 }
 
-minegrub_u() {
-  if [[ -d "$CUSTOM_DIR/minegrub-theme" ]]; then
-    echo "Found MineGrub theme directory at $CUSTOM_DIR/minegrub-theme"
-    cd "$CUSTOM_DIR/minegrub-theme" || return 1
-    update_git_repo
-    echo "Copying MineGrub theme files..."
-    sudo cp -ruv ./minegrub /boot/grub/themes/ || {
-      echo "Error: Failed to copy MineGrub theme files. Please check permissions."
-      return 1
-    }
-    # Check if GRUB_THEME is already set
-    if ! grep -Fxq 'GRUB_THEME=/boot/grub/themes/minegrub/theme.txt' /etc/default/grub; then
-      echo "GRUB_THEME not found in /etc/default/grub. Adding..."
-      # Append GRUB_THEME setting to /etc/default/grub
-      sudo tee -a /etc/default/grub <<EOF
-GRUB_THEME=/boot/grub/themes/minegrub/theme.txt
-EOF
-    fi
-    echo "Regenerating GRUB configuration..."
-    sudo grub-mkconfig -o /boot/grub/grub.cfg
-    cd || return 1
-  fi
-}
-
 nerdfonts_u() {
   if [ "$(
     fc-list | grep JetBrainsMono &>/dev/null
@@ -66,41 +44,6 @@ nerdfonts_u() {
     echo "Cleaning up..."
     rm JetBrainsMono.tar.xz
   fi
-}
-
-system_u() {
-  # Identify package manager and perform updates
-  if type -P fwupdmgr >/dev/null; then
-    echo "Updating system with fwupdmgr..."
-    sudo fwupdmgr update
-  fi
-  if type -P apt >/dev/null; then
-    echo "Updating system with apt..."
-    sudo apt update && sudo apt upgrade
-    echo "Removing unused packages..."
-    sudo apt autoremove
-  fi
-  if [ "$(
-    which nala &>/dev/null
-    echo $?
-  )" -eq 0 ]; then
-    echo "Updating system with nala frontend..."
-    sudo nala update && sudo nala upgrade
-  fi
-  if [[ -d /snap ]]; then
-    echo "Updating Snaps..."
-    sudo snap refresh
-  fi
-  if [ "$(
-    which dnf &>/dev/null
-    echo $?
-  )" -eq 0 ]; then
-    echo "Updating system with dnf (minimal upgrade)..."
-    sudo dnf upgrade-minimal
-    echo "Removing unused packages..."
-    sudo dnf autoremove
-  fi
-  echo "System updates complete."
 }
 
 flatpak_u() {
@@ -122,36 +65,52 @@ flatpak_u() {
 }
 
 neovim_u() {
-  if [[ -d "/opt/nvim-linux-x86_64" ]]; then
-    echo "Existing NeoVim installation detected in /opt/nvim-linux-x86_64."
-    echo "Downloading the latest NeoVim source..."
-    curl -LO https://github.com/neovim/neovim/releases/latest/download/nvim-linux-x86_64.tar.gz
-    sudo rm -rf /opt/nvim
-    echo "Extracting downloaded source..."
-    sudo tar -C /opt -xzf nvim-linux-x86_64.tar.gz
-    echo "Cleaning up..."
-    rm nvim-linux-x86_64.tar.gz
-  fi
-  if [[ -f "/opt/nvim/nvim-linux-x86_64.appimage" ]]; then
-    echo "Existing NeoVim AppImage detected in /opt/nvim/nvim-linux-x86_64.appimage."
-    echo "Downloading and verifying the latest NeoVim AppImage integrity..."
-    curl -LO https://github.com/neovim/neovim/releases/latest/download/nvim-linux-x86_64.appimage
+  # Exit immediately if a command exits with a non-zero status.
+  set -e
 
-    existing_checksum=$(md5sum "/opt/nvim/nvim-linux-x86_64.appimage" | awk '{print $1}')
-    downloaded_checksum=$(md5sum ./nvim-linux-x86_64.appimage | awk '{print $1}')
-    if [ "$existing_checksum" != "$downloaded_checksum" ]; then
-      echo "Checksums differ. Updating NeoVim AppImage..."
-      chmod u+x nvim-linux-x86_64.appimage
-      sudo rm /opt/nvim/nvim-linux-x86_64.appimage
-      sudo mv ./nvim-linux-x86_64.appimage /opt/nvim/
-      sudo ln -sf /opt/nvim/nvim-linux-x86_64.appimage /usr/local/bin/nvim
-    else
-      echo "Checksums match. Existing NeoVim AppImage is up-to-date."
-    fi
-    echo "Cleaning up..."
-    rm nvim-linux-x86_64.appimage
+  APPIMAGE_URL="https://github.com/neovim/neovim/releases/latest/download/nvim-linux-x86_64.appimage"
+  INSTALL_PATH="$HOME/.local/bin/nvim"
+  TEMP_DIR=$(mktemp -d)
+
+  # Check if an existing version is installed. If not, exit gracefully.
+  if [[ ! -f "$INSTALL_PATH" ]]; then
+    echo "Neovim is not installed at $INSTALL_PATH. This script is only for updating."
+    return 1
   fi
-  if type -P lvim >/dev/null; then lvim +LvimUpdate +q; fi
+
+  echo "Existing Neovim version detected. Checking for updates..."
+
+  # Navigate to the temporary directory. The script will stop if this fails.
+  cd "$TEMP_DIR"
+
+  # Download the file. The script will stop if this fails.
+  curl -LJO --silent --show-error "$APPIMAGE_URL"
+
+  # Make the downloaded file executable. The script will stop if this fails.
+  chmod u+x nvim-linux-x86_64.appimage
+
+  # Compare the file sizes to check for a new version
+  EXISTING_SIZE=$(stat -c%s "$INSTALL_PATH")
+  DOWNLOADED_SIZE=$(stat -c%s "nvim-linux-x86_64.appimage")
+
+  if [[ "$EXISTING_SIZE" -ne "$DOWNLOADED_SIZE" ]]; then
+    echo "A new version of NeoVim is available. Updating..."
+    mv "nvim-linux-x86_64.appimage" "$INSTALL_PATH"
+    echo "NeoVim updated successfully."
+  else
+    echo "Neovim is already up to date. No action required."
+    # Remove the downloaded file since it's not needed.
+    rm "nvim-linux-x86_64.appimage"
+  fi
+
+  # Final cleanup
+  echo "Cleaning up temporary files..."
+  rm -rf "$TEMP_DIR"
+
+  cd ~ || return 1
+
+  # Unset the strict mode at the end of the function to avoid affecting other functions.
+  set +e
 }
 
 rust_u() {
@@ -195,24 +154,6 @@ rust_u() {
   fi
 }
 
-darkman_u() {
-  if [[ -d "$CUSTOM_DIR/darkman" ]]; then
-    echo "Found Darkman directory"
-    cd "$CUSTOM_DIR/darkman" || return 1
-    update_git_repo
-    echo "Building Darkman..."
-    make || {
-      echo "Error: Failed to build Darkman. Please check the build output for details."
-      return 1
-    }
-    echo "Installing Darkman (requires sudo)..."
-    sudo make install PREFIX=/usr
-    cd || return 1
-    echo "Enabling and starting Darkman service for your user session..."
-    systemctl --user enable --now darkman.service
-  fi
-}
-
 python_u() {
   if [[ $(pip freeze --user | awk -F "==" '{print $1}' | wc -l) -ge 1 ]]; then
     echo "Updating user-installed Python packages..."
@@ -240,7 +181,7 @@ colloid_u() {
         # schemeCamelCase=$(echo "$scheme" | sed 's/\b./\U&/g')
         # ln -sf ~/.themes/Colloid-${themeCamelCase}-Dark-${schemeCamelCase}/gtk-4.0/* ~/.config/gtk-4.0/
         echo "Fix for Flatpak..."
-        sudo flatpak override --filesystem=xdg-config/gtk-3.0 && sudo flatpak override --filesystem=xdg-config/gtk-4.0
+        # sudo flatpak override --filesystem=xdg-config/gtk-3.0 && sudo flatpak override --filesystem=xdg-config/gtk-4.0
         cd ~ || return 1
       fi
       if [[ "$(basename "$DIR")" == "Colloid-icon-theme" ]]; then
@@ -297,78 +238,163 @@ node_u() {
   fi
 }
 
-updates() {
-  declare -a updates=(minegrub_u nerdfonts_u lazygit_u system_u flatpak_u colloid_u neovim_u node_u rust_u python_u darkman_u)
-  declare -a options=("$@")
-  IFS=" " read -r -a options <<<"$@"
+# SUDO FUNCTIONS
+minegrub_u() {
+  if [[ -d "$CUSTOM_DIR/minegrub-theme" ]]; then
+    echo "Found MineGrub theme directory at $CUSTOM_DIR/minegrub-theme"
+    cd "$CUSTOM_DIR/minegrub-theme" || return 1
+    update_git_repo
+    echo "Copying MineGrub theme files..."
+    sudo cp -ruv ./minegrub /boot/grub/themes/ || {
+      echo "Error: Failed to copy MineGrub theme files. Please check permissions."
+      return 1
+    }
+    # Check if GRUB_THEME is already set
+    if ! grep -Fxq 'GRUB_THEME=/boot/grub/themes/minegrub/theme.txt' /etc/default/grub; then
+      echo "GRUB_THEME not found in /etc/default/grub. Adding..."
+      # Append GRUB_THEME setting to /etc/default/grub
+      sudo tee -a /etc/default/grub <<EOF
+GRUB_THEME=/boot/grub/themes/minegrub/theme.txt
+EOF
+    fi
+    echo "Regenerating GRUB configuration..."
+    sudo grub-mkconfig -o /boot/grub/grub.cfg
+    cd || return 1
+  fi
+}
 
+system_u() {
+  # Identify package manager and perform updates
+  if type -P fwupdmgr >/dev/null; then
+    echo "Updating system with fwupdmgr..."
+    sudo fwupdmgr update
+  fi
+  if type -P apt >/dev/null; then
+    echo "Updating system with apt..."
+    sudo apt update && sudo apt upgrade
+    echo "Removing unused packages..."
+    sudo apt autoremove
+  fi
+  if [ "$(
+    which nala &>/dev/null
+    echo $?
+  )" -eq 0 ]; then
+    echo "Updating system with nala frontend..."
+    sudo nala update && sudo nala upgrade
+  fi
+  if [[ -d /snap ]]; then
+    echo "Updating Snaps..."
+    sudo snap refresh
+  fi
+  if [ "$(
+    which dnf &>/dev/null
+    echo $?
+  )" -eq 0 ]; then
+    echo "Updating system with dnf (minimal upgrade)..."
+    sudo dnf upgrade-minimal
+    echo "Removing unused packages..."
+    sudo dnf autoremove
+  fi
+  echo "System updates complete."
+}
+
+darkman_u() {
+  if [[ -d "$CUSTOM_DIR/darkman" ]]; then
+    echo "Found Darkman directory"
+    cd "$CUSTOM_DIR/darkman" || return 1
+    update_git_repo
+    echo "Building Darkman..."
+    make || {
+      echo "Error: Failed to build Darkman. Please check the build output for details."
+      return 1
+    }
+    echo "Installing Darkman (requires sudo)..."
+    sudo make install PREFIX=/usr
+    cd || return 1
+    echo "Enabling and starting Darkman service for your user session..."
+    systemctl --user enable --now darkman.service
+  fi
+}
+
+# MAIN FUNCTION TO HANDLE UPDATES
+updates() {
+  # Declares arrays for user and sudo updates
+  declare -a updates_user=(nerdfonts_u flatpak_u colloid_u neovim_u node_u rust_u python_u)
+  declare -a updates_sudo=(minegrub_u system_u darkman_u)
+
+  # Helper function to display help information
   info() {
-    echo -e "Usage: updates [options]\n\nList of main commands:\n"
-    for i in "${updates[@]}"; do
-      echo "$i" | cut -d '_' -f 1
-    done
-    echo -e "\n all: Release all updates"
-    echo " -h: Displays this help message"
+    echo -e "Usage: updates [option | Individual_names]\n"
+    echo -e "Options:"
+    echo "  -u, --user  Run only user updates (without sudo)"
+    echo "  -s, --sudo  Run only sudo updates"
+    echo "  -a, --all   Run all updates (user first, then sudo)"
+    echo "  -h, --help  Display this help message"
+    echo -e "\nIndividual Updates:"
+    # List all available functions from both arrays
+    for i in "${updates_user[@]}"; do echo "  ${i%%_u}"; done
+    for i in "${updates_sudo[@]}"; do echo "  ${i%%_u}"; done
   }
 
-  if [[ ${#options[@]} -gt 0 ]]; then
-    for o in "${options[@]}"; do
-      case "$o" in
-      all)
-        echo "Running all updates..."
-        for i in "${updates[@]}"; do
-          echo "  - Executing: $i" | cut -d '_' -f 1
-          $i
-        done
-        ;;
-      minegrub)
-        minegrub_u
-        ;;
-      flatpak)
-        flatpak_u
-        ;;
-      neovim)
-        neovim_u
-        ;;
-      node)
-        node_u
-        ;;
-      rust)
-        rust_u
-        ;;
-      nerdfonts)
-        nerdfonts_u
-        ;;
-      system)
-        system_u
-        ;;
-      colloid)
-        colloid_u
-        ;;
-      darkman)
-        darkman_u
-        ;;
-      python)
-        python_u
-        ;;
-      *)
-        if [[ "$o" != "-h" ]]; then
-          echo "Invalid option: '$o'. Use 'updates -h' for help."
-        fi
-        ;;
-      esac
+  # Helper function to run the updates
+  run_updates() {
+    local type="$1"
+    local updates_list=()
+
+    if [[ "$type" == "user" ]]; then
+      updates_list=("${updates_user[@]}")
+      echo "Starting user updates..."
+    elif [[ "$type" == "sudo" ]]; then
+      updates_list=("${updates_sudo[@]}")
+      echo "Starting sudo updates..."
+    fi
+
+    for func_name in "${updates_list[@]}"; do
+      echo "  -> Executing: ${func_name%%_u}"
+      if [[ "$type" == "sudo" ]]; then
+        sudo "$func_name"
+      else
+        "$func_name"
+      fi
     done
-  else
-    # No options provided, display help
+  }
+
+  # Main logic: Check for arguments and handle them
+  if [[ "$#" -eq 0 ]]; then
     info
+    return 0
   fi
 
-  while getopts ":h" opt; do
-    case "$opt" in
-    h)
-      info
-      ;;
-    *) ;;
-    esac
-  done
+  case "$1" in
+  -u | --user)
+    run_updates "user"
+    ;;
+  -s | --sudo)
+    run_updates "sudo"
+    ;;
+  -a | --all)
+    run_updates "user"
+    run_updates "sudo"
+    ;;
+  -h | --help)
+    info
+    ;;
+  *)
+    # If the first argument is not a known flag, loop through all arguments
+    local found=false
+    for arg in "$@"; do
+      local func_name="${arg}_u"
+      if [[ " ${updates_user[@]} " =~ " ${func_name} " ]]; then
+        "$func_name"
+        found=true
+      elif [[ " ${updates_sudo[@]} " =~ " ${func_name} " ]]; then
+        sudo "$func_name"
+        found=true
+      else
+        echo "Invalid function name or option: '$arg'. Use 'updates -h' for help." >&2
+        return 1
+      fi
+    done
+    ;;
+  esac
 }
