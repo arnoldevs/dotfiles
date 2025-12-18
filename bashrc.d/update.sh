@@ -2,7 +2,7 @@
 
 CUSTOM_DIR="$HOME/.custom"
 scheme="gruvbox"
-themeVariant="red"
+themeVariant="yellow"
 
 # NON-SUDO FUNCTIONS
 # Function to check directory existence and change directory
@@ -154,6 +154,96 @@ rust_u() {
   fi
 }
 
+beekeeper_u() {
+  # Exit immediately if a command exits with a non-zero status.
+  set -e
+
+  INSTALL_PATH="$HOME/.local/bin/beekeeper-studio"
+  TEMP_DIR=$(mktemp -d)
+  MIN_SIZE_BYTES=1000000 # Minimum expected size for an AppImage (1 MB)
+
+  # 1. Check if an existing version is installed. If not, exit.
+  if [[ ! -f "$INSTALL_PATH" ]]; then
+    echo "Beekeeper Studio is not installed at $INSTALL_PATH. This script is only for updating."
+    return 1
+  fi
+
+  echo "Existing Beekeeper Studio version detected. Checking for updates..."
+
+  # --- Dynamic URL and Filename Discovery ---
+  GITHUB_API_URL="https://api.github.com/repos/beekeeper-studio/beekeeper-studio/releases/latest"
+
+  # Fetch release data
+  RELEASE_DATA=$(curl -s "$GITHUB_API_URL")
+
+  # Extract the version tag (e.g., v5.4.9)
+  LATEST_VERSION=$(echo "$RELEASE_DATA" | grep '"tag_name":' | head -n 1 | cut -d '"' -f 4)
+
+  # Find the exact AppImage filename (for x86_64 architecture) from the assets list
+  APPIMAGE_FILENAME=$(echo "$RELEASE_DATA" | grep -oP '"name": "\KBeekeeper-Studio-.*\.AppImage"' | grep -v 'arm64' | head -n 1 | tr -d '"')
+
+  if [[ -z "$LATEST_VERSION" || -z "$APPIMAGE_FILENAME" ]]; then
+    echo "Error: Could not determine the latest version or AppImage filename from GitHub API." >&2
+    return 1
+  fi
+
+  # Construct the direct download URL
+  APPIMAGE_URL="https://github.com/beekeeper-studio/beekeeper-studio/releases/download/${LATEST_VERSION}/${APPIMAGE_FILENAME}"
+  # -----------------------------------------
+
+  # Fixed filename to use in the temporary directory.
+  DOWNLOADED_FILE="Beekeeper-Studio-latest.AppImage"
+
+  # 2. Navigate to the temporary directory
+  cd "$TEMP_DIR"
+
+  echo "Downloading Beekeeper Studio AppImage from $APPIMAGE_URL..."
+
+  # 3. Download the file
+  # -L: Follows redirects
+  # -o: Saves the output to the specified filename.
+  curl -L --silent --show-error "$APPIMAGE_URL" -o "$DOWNLOADED_FILE"
+
+  # 4. Verification check: Check if the downloaded file is a valid binary.
+  if [[ ! -f "$DOWNLOADED_FILE" || $(stat -c%s "$DOWNLOADED_FILE") -lt "$MIN_SIZE_BYTES" ]]; then
+    echo "Error: The downloaded file is too small or does not exist. Download failed." >&2
+    # Clean up and return an error code (1)
+    rm -rf "$TEMP_DIR"
+    cd ~ || return 1
+    set +e
+    return 1
+  fi
+
+  echo "Download successful. File size: $(du -h "$DOWNLOADED_FILE" | awk '{print $1}')"
+
+  # 5. Make the downloaded file executable
+  chmod u+x "$DOWNLOADED_FILE"
+
+  # 6. Compare the file sizes
+  EXISTING_SIZE=$(stat -c%s "$INSTALL_PATH")
+  DOWNLOADED_SIZE=$(stat -c%s "$DOWNLOADED_FILE")
+
+  if [[ "$EXISTING_SIZE" -ne "$DOWNLOADED_SIZE" ]]; then
+    echo "A new version of Beekeeper Studio ($LATEST_VERSION) is available. Updating..."
+    # Move the new AppImage to the installation path, overwriting the old one
+    mv "$DOWNLOADED_FILE" "$INSTALL_PATH"
+    echo "Beekeeper Studio updated successfully."
+  else
+    echo "Beekeeper Studio is already up to date. No action required."
+    # Delete the downloaded file since it's not needed
+    rm "$DOWNLOADED_FILE"
+  fi
+
+  # 7. Final cleanup
+  echo "Cleaning up temporary files..."
+  rm -rf "$TEMP_DIR"
+
+  cd ~ || return 1
+
+  # Unset the strict mode at the end of the function.
+  set +e
+}
+
 python_u() {
   if [[ $(pip freeze --user | awk -F "==" '{print $1}' | wc -l) -ge 1 ]]; then
     echo "Updating user-installed Python packages..."
@@ -189,8 +279,6 @@ colloid_u() {
         cd "$DIR" || return 1
         update_git_repo
         mkdir -p "$HOME/.local/share/icons"
-        echo "Reinstalling..."
-        ./install.sh --scheme $scheme --theme $themeVariant
         echo "Reinstalling Colloid cursors..."
         cd "$DIR/cursors/" || return 1
         ./install.sh
@@ -319,7 +407,7 @@ darkman_u() {
 # MAIN FUNCTION TO HANDLE UPDATES
 updates() {
   # Declares arrays for user and sudo updates
-  declare -a updates_user=(nerdfonts_u flatpak_u colloid_u neovim_u node_u rust_u python_u)
+  declare -a updates_user=(beekeeper_u nerdfonts_u flatpak_u colloid_u neovim_u node_u rust_u python_u)
   declare -a updates_sudo=(minegrub_u system_u darkman_u)
 
   # Helper function to display help information
