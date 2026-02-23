@@ -48,17 +48,17 @@ if type -P fzf >/dev/null; then eval "$(fzf --bash)"; fi
 #### JAVA ####
 if type -P dnf &>/dev/null; then
   if type -P javac >/dev/null; then
-  for jdk_dir in /usr/lib/jvm/*; do
-    if [[ -d "$jdk_dir" && "$jdk_dir" == *temurin* ]]; then
-      JAVA_HOME="$jdk_dir"
-      break
-    elif [[ -d "$jdk_dir" && "$jdk_dir" == java-openjdk ]]; then
-      JAVA_HOME="$jdk_dir"
-      break
-    fi
-  done
-  export PATH="$JAVA_HOME/bin:$PATH"
-fi
+    for jdk_dir in /usr/lib/jvm/*; do
+      if [[ -d "$jdk_dir" && "$jdk_dir" == *temurin* ]]; then
+        JAVA_HOME="$jdk_dir"
+        break
+      elif [[ -d "$jdk_dir" && "$jdk_dir" == java-openjdk ]]; then
+        JAVA_HOME="$jdk_dir"
+        break
+      fi
+    done
+    export PATH="$JAVA_HOME/bin:$PATH"
+  fi
 elif type -P apt &>/dev/null; then
   if type -P javac >/dev/null; then
     JAVA_HOME="/usr/lib/jvm/default-java"

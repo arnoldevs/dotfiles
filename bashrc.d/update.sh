@@ -333,7 +333,7 @@ minegrub_u() {
     cd "$CUSTOM_DIR/minegrub-theme" || return 1
     update_git_repo
     echo "Copying MineGrub theme files..."
-    sudo cp -ruv ./minegrub /boot/grub/themes/ || {
+    cp -ruv ./minegrub /boot/grub/themes/ || {
       echo "Error: Failed to copy MineGrub theme files. Please check permissions."
       return 1
     }
@@ -341,12 +341,12 @@ minegrub_u() {
     if ! grep -Fxq 'GRUB_THEME=/boot/grub/themes/minegrub/theme.txt' /etc/default/grub; then
       echo "GRUB_THEME not found in /etc/default/grub. Adding..."
       # Append GRUB_THEME setting to /etc/default/grub
-      sudo tee -a /etc/default/grub <<EOF
+      tee -a /etc/default/grub <<EOF
 GRUB_THEME=/boot/grub/themes/minegrub/theme.txt
 EOF
     fi
     echo "Regenerating GRUB configuration..."
-    sudo grub-mkconfig -o /boot/grub/grub.cfg
+    grub-mkconfig -o /boot/grub/grub.cfg
     cd || return 1
   fi
 }
@@ -355,33 +355,33 @@ system_u() {
   # Identify package manager and perform updates
   if type -P fwupdmgr >/dev/null; then
     echo "Updating system with fwupdmgr..."
-    sudo fwupdmgr update
+    fwupdmgr update
   fi
   if type -P apt >/dev/null; then
     echo "Updating system with apt..."
-    sudo apt update && sudo apt upgrade
+    apt update && apt upgrade
     echo "Removing unused packages..."
-    sudo apt autoremove
+    apt autoremove
   fi
   if [ "$(
     which nala &>/dev/null
     echo $?
   )" -eq 0 ]; then
     echo "Updating system with nala frontend..."
-    sudo nala update && sudo nala upgrade
+    nala update && nala upgrade
   fi
   if [[ -d /snap ]]; then
     echo "Updating Snaps..."
-    sudo snap refresh
+    snap refresh
   fi
   if [ "$(
     which dnf &>/dev/null
     echo $?
   )" -eq 0 ]; then
     echo "Updating system with dnf (minimal upgrade)..."
-    sudo dnf upgrade-minimal
+    dnf upgrade-minimal
     echo "Removing unused packages..."
-    sudo dnf autoremove
+    dnf autoremove
   fi
   echo "System updates complete."
 }
@@ -397,10 +397,24 @@ darkman_u() {
       return 1
     }
     echo "Installing Darkman (requires sudo)..."
-    sudo make install PREFIX=/usr
+    make install PREFIX=/usr
     cd || return 1
-    echo "Enabling and starting Darkman service for your user session..."
-    systemctl --user enable --now darkman.service
+    echo "Enabling Darkman service for user: $SUDO_USER..."
+    if [[ -n "$SUDO_USER" ]]; then
+      sudo -u "$SUDO_USER" systemctl --user enable --now darkman.service
+    else
+      systemctl --user enable --now darkman.service
+    fi
+  fi
+}
+
+syft_u() {
+  echo "Force updating Syft (overwriting)..."
+
+  if curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh -s -- -b /usr/local/bin; then
+    echo "  Syft updated/reinstalled successfully."
+  else
+    echo "  Error: Failed to install Syft."
   fi
 }
 
@@ -408,7 +422,7 @@ darkman_u() {
 updates() {
   # Declares arrays for user and sudo updates
   declare -a updates_user=(beekeeper_u nerdfonts_u flatpak_u colloid_u neovim_u node_u rust_u python_u)
-  declare -a updates_sudo=(minegrub_u system_u darkman_u)
+  declare -a updates_sudo=(minegrub_u system_u darkman_u syft_u)
 
   # Helper function to display help information
   info() {
