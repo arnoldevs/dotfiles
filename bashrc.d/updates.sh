@@ -36,7 +36,7 @@ log_task() { echo -e "${PURPLE}  -> Executing:${NC} $1"; }
 # Privilege and Context Validation
 has_sudo() {
   [[ "$EUID" -eq 0 ]] && return 0
-  sudo -n true 2>/dev/null
+  sudo true 2>/dev/null
   return $?
 }
 
