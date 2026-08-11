@@ -1,6 +1,27 @@
+# --- TEMPORARY FILES & BACKUPS ---
 *.bak
+*~
+*.swp
+*.tmp
+
+# --- PRIVATE & HOST-SPECIFIC CONFIGURATIONS ---
+.bashrc.local
+*.local.sh
+
+# --- DYNAMIC & RUNTIME GENERATED THEMES ---
+# Bash
+**/.bashrc.d/colors.sh
+
+# Kitty
 kitty/current-theme.conf
 kitty/theme.conf
-bashrc.d/colors.sh
+
+# Sway
 sway/config.d/90-sway-colors.conf
+
+# Cava
 cava/shaders/
+
+# --- OS GENERATED FILES ---
+.DS_Store
+Thumbs.db

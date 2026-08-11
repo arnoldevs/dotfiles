@@ -1,0 +1,113 @@
+# =====================================================================
+# Starship Prompt - Gruvbox Theme
+# =====================================================================
+
+"$schema" = 'https://starship.rs/config-schema.json'
+
+format = """
+[](#b8bb26)\
+$os\
+[](#b8bb26) \
+[](#fabd2f)\
+$directory\
+[](#fabd2f) \
+$git_branch\
+$git_status\
+$python\
+$nodejs\
+$rust\
+$c\
+$golang\
+$nix_shell\
+$container\
+$direnv\
+$battery\
+$time\
+\n$character\
+"""
+
+[character]
+error_symbol = '[❯](bold #fb4934)'
+success_symbol = '[❯](bold #b8bb26)'
+
+[os]
+style = "bg:#b8bb26 fg:#282828"
+format = "[ $symbol]($style)"
+disabled = false
+
+[os.symbols]
+Debian = "󰣚 "
+
+[directory]
+style = "bg:#fabd2f fg:#282828"
+format = "[ $path ]($style)"
+truncation_length = 3
+truncation_symbol = "…/"
+
+[directory.substitutions]
+"Documents" = "󰈙 "
+"Downloads" = " "
+"Music" = " "
+"Pictures" = " "
+
+[git_branch]
+symbol = ""
+style = "bg:#8ec07c fg:#282828 bold"
+format = '[](#8ec07c)[$symbol $branch ]($style)'
+
+[git_status]
+style = "bg:#8ec07c fg:#282828 bold"
+format = '[$all_status$ahead_behind ]($style)[](#8ec07c) '
+
+# Runtime environments and container contexts
+[python]
+symbol = " "
+format = '[](#458588)[ $symbol($version) ](bg:#458588 fg:#282828 bold)[](#458588) '
+
+[nodejs]
+symbol = "󰎙 "
+format = '[](#98971a)[ $symbol($version) ](bg:#98971a fg:#282828 bold)[](#98971a) '
+
+[rust]
+symbol = " "
+format = '[](#fe8019)[ $symbol($version) ](bg:#fe8019 fg:#282828 bold)[](#fe8019) '
+
+[c]
+symbol = " "
+format = '[](#83a598)[ $symbol($version) ](bg:#83a598 fg:#282828 bold)[](#83a598) '
+
+[golang]
+symbol = " "
+format = '[](#8ec07c)[ $symbol($version) ](bg:#8ec07c fg:#282828 bold)[](#8ec07c) '
+
+[nix_shell]
+symbol = " "
+format = '[](#83a598)[ $symbol$state ](bg:#83a598 fg:#282828 bold)[](#83a598) '
+disabled = false
+
+[container]
+symbol = "󰌸 "
+format = '[](#b16286)[ $symbol $name ](bg:#b16286 fg:#282828 bold)[](#b16286) '
+disabled = false
+
+[direnv]
+symbol = "󱃖 "
+format = '[](#d65d0e)[ $symbol$status ](bg:#d65d0e fg:#282828 bold)[](#d65d0e) '
+allowed_msg = "allowed"
+loaded_msg = "loaded"
+disabled = false
+
+[battery]
+disabled = false
+format = '[](#504945)[ $symbol $percentage ](bg:#504945 fg:#ebdbb2)[](#504945) '
+charging_symbol = "󰂄"
+discharging_symbol = "󰁹"
+
+[[battery.display]]
+threshold = 100
+style = "bg:#504945 fg:#ebdbb2"
+
+[time]
+disabled = false
+time_format = "%R"
+format = '[](#504945)[   $time ](bg:#504945 fg:#ebdbb2)[](#504945)'

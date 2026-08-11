@@ -1,0 +1,391 @@
+#!/usr/bin/env bash
+
+# =====================================================================
+# File: ~/.bashrc.d/updates.sh
+# Description: Module-by-Module Maintenance and Update Framework
+# =====================================================================
+
+# ---------------------------------------------------------------------
+# ANSI Formatting & Colors
+# ---------------------------------------------------------------------
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+PURPLE='\033[0;35m'
+CYAN='\033[0;36m'
+NC='\033[0m' # No Color
+
+# ---------------------------------------------------------------------
+# Global Counters & Logging Helpers
+# ---------------------------------------------------------------------
+SUCCESS_COUNT=0
+TOTAL_COUNT=0
+
+log_info()    { echo -e "${BLUE}[INFO]${NC} $1"; }
+log_success() { echo -e "${GREEN}[SUCCESS]${NC} $1"; ((SUCCESS_COUNT++)); }
+log_warn()    { echo -e "${YELLOW}[WARN]${NC} $1"; }
+log_error()   { echo -e "${RED}[ERROR]${NC} $1"; }
+log_task()    { echo -e "${PURPLE}  -> Executing:${NC} $1"; }
+
+# ---------------------------------------------------------------------
+# Core Utility Functions
+# ---------------------------------------------------------------------
+
+# Description: Validates if the current user is root or has active sudo privileges.
+has_sudo() {
+    [[ "$EUID" -eq 0 ]] && return 0
+    sudo -v 2>/dev/null
+    return $?
+}
+
+# Description: Executes a command directly if root, otherwise elevates with sudo.
+smart_run() {
+    if [[ "$EUID" -eq 0 ]]; then
+        "$@"
+    else
+        sudo "$@"
+    fi
+}
+
+# Description: Synchronizes a local Git repository with upstream using rebase and -C pathing.
+update_git_repo() {
+    local repo_path="$1"
+    log_info "Syncing Git repository at $repo_path..."
+    if git -C "$repo_path" pull --rebase; then
+        log_success "Repo synchronized."
+        return 0
+    else
+        log_error "Git conflict detected in $(basename "$repo_path")"
+        return 1
+    fi
+}
+
+# ---------------------------------------------------------------------
+# User-Space Modules (No Sudo Required)
+# ---------------------------------------------------------------------
+
+# Description: Deploys or updates JetBrainsMono Nerd Font atomically from GitHub releases.
+# Target Path: ~/.local/share/fonts/JetBrainsMono
+nerdfonts_u() {
+    local FONT_DIR="$HOME/.local/share/fonts/JetBrainsMono"
+    if [[ ! -d "$FONT_DIR" ]]; then
+        log_warn "JetBrainsMono Nerd Font directory missing on host. Skipping update."
+        return 0
+    fi
+
+    log_info "Updating JetBrainsMono Nerd Font atomically..."
+    local TEMP_DIR TEMP_FILE TEMP_PATH
+    
+    TEMP_DIR=$(mktemp -d)
+    TEMP_FILE="JetBrainsMono.tar.xz"
+    TEMP_PATH="$TEMP_DIR/$TEMP_FILE"
+
+    if curl -L --silent --show-error -o "$TEMP_PATH" "https://github.com/ryanoasis/nerd-fonts/releases/latest/download/${TEMP_FILE}"; then
+        mkdir -p "$TEMP_DIR/extracted"
+        if tar -xf "$TEMP_PATH" -C "$TEMP_DIR/extracted"; then
+            mkdir -p "$FONT_DIR"
+            rm -rf "$FONT_DIR"/*
+            cp -r "$TEMP_DIR/extracted/"* "$FONT_DIR/"
+            fc-cache -f
+            rm -rf "$TEMP_DIR"
+            log_success "JetBrainsMono Nerd Font updated atomically."
+            return 0
+        fi
+    fi
+
+    log_error "Font update failed."
+    rm -rf "$TEMP_DIR"
+    return 1
+}
+
+# Description: Updates system flatpaks via package manager hooks.
+flatpak_u() {
+    if command -v flatpak &>/dev/null; then
+        log_info "Updating Flatpaks..."
+        if flatpak update -y; then
+            log_success "Flatpaks updated."
+            return 0
+        fi
+        log_error "Flatpak update failed."
+        return 1
+    else
+        log_warn "Flatpak missing on host. Skipping."
+        return 0
+    fi
+}
+
+# Description: Downloads and updates Neovim atomically via precompiled tarball release.
+# Target Path: ~/.local/
+neovim_u() {
+    if ! command -v nvim &>/dev/null && [[ ! -f "$HOME/.local/bin/nvim" ]]; then
+        log_warn "Neovim missing on host. Skipping update."
+        return 0
+    fi
+
+    log_info "Updating Neovim atomically (precompiled tar.gz release)..."
+    local DOWNLOAD_URL="https://github.com/neovim/neovim/releases/latest/download/nvim-linux-x86_64.tar.gz"
+    local TEMP_DIR TEMP_PATH
+    
+    TEMP_DIR=$(mktemp -d)
+    TEMP_PATH="$TEMP_DIR/nvim.tar.gz"
+
+    if curl -L --silent --show-error -o "$TEMP_PATH" "$DOWNLOAD_URL"; then
+        mkdir -p "$TEMP_DIR/extracted"
+        if tar -xzf "$TEMP_PATH" -C "$TEMP_DIR/extracted" --strip-components=1; then
+            local INSTALL_DIR="$HOME/.local"
+            mkdir -p "$INSTALL_DIR"
+            
+            # Atomic replacement of core directory components
+            for sub in bin lib share; do
+                if [[ -d "$TEMP_DIR/extracted/$sub" ]]; then
+                    mkdir -p "$INSTALL_DIR/$sub"
+                    cp -r "$TEMP_DIR/extracted/$sub/"* "$INSTALL_DIR/$sub/" 2>/dev/null || true
+                fi
+            done
+
+            rm -rf "$TEMP_DIR"
+            log_success "Neovim successfully updated atomically in ~/.local/"
+            return 0
+        fi
+    fi
+
+    log_error "Neovim update failed."
+    rm -rf "$TEMP_DIR"
+    return 1
+}
+
+# Description: Fetches and updates the Linux AppImage of Beekeeper Studio.
+# Target Path: ~/.local/bin/beekeeper-studio
+beekeeper_u() {
+    local INSTALL_PATH="$HOME/.local/bin/beekeeper-studio"
+    if [[ ! -f "$INSTALL_PATH" ]] && ! command -v beekeeper-studio &>/dev/null; then
+        log_warn "Beekeeper Studio missing on host. Skipping update."
+        return 0
+    fi
+
+    log_info "Updating Beekeeper Studio (AppImage)..."
+    mkdir -p "$HOME/.local/bin"
+
+    local API_URL="https://api.github.com/repos/beekeeper-studio/beekeeper-studio/releases/latest"
+    local RELEASE_DATA DOWNLOAD_URL
+    RELEASE_DATA=$(curl -s "$API_URL")
+    
+    DOWNLOAD_URL=$(echo "$RELEASE_DATA" | grep -oP '"browser_download_url": "\K[^"]+\.AppImage' | grep -v 'arm64' | head -n 1)
+
+    if [[ -z "$DOWNLOAD_URL" ]]; then
+        log_error "Could not resolve Beekeeper release URL."
+        return 1
+    fi
+
+    local TEMP_DIR TEMP_PATH
+    TEMP_DIR=$(mktemp -d)
+    TEMP_PATH="$TEMP_DIR/beekeeper.AppImage"
+
+    if curl -L --silent -o "$TEMP_PATH" "$DOWNLOAD_URL"; then
+        chmod u+x "$TEMP_PATH"
+        
+        if [[ $(stat -c%s "$INSTALL_PATH") -ne $(stat -c%s "$TEMP_PATH") ]]; then
+            mv "$TEMP_PATH" "$INSTALL_PATH"
+            log_success "Beekeeper Studio binary updated in ~/.local/bin/beekeeper-studio."
+        else
+            log_info "Beekeeper Studio is already at the latest version."
+            ((SUCCESS_COUNT++))
+        fi
+        rm -rf "$TEMP_DIR"
+        return 0
+    else
+        log_error "Beekeeper Studio download failed."
+        rm -rf "$TEMP_DIR"
+        return 1
+    fi
+}
+
+# Description: Downloads and updates the kind (Kubernetes in Docker) CLI binary.
+# Target Path: ~/.local/bin/kind
+kind_u() {
+    local INSTALL_PATH="$HOME/.local/bin/kind"
+    if [[ ! -f "$INSTALL_PATH" ]] && ! command -v kind &>/dev/null; then
+        log_warn "kind missing on host. Skipping update."
+        return 0
+    fi
+
+    log_info "Updating kind (Kubernetes in Docker) CLI binary..."
+    mkdir -p "$HOME/.local/bin"
+    local TEMP_DIR TEMP_PATH
+    
+    TEMP_DIR=$(mktemp -d)
+    TEMP_PATH="$TEMP_DIR/kind"
+
+    if curl -Lo "$TEMP_PATH" "https://kind.sigs.k8s.io/dl/latest/kind-linux-amd64"; then
+        chmod u+x "$TEMP_PATH"
+
+        if [[ $(stat -c%s "$INSTALL_PATH") -ne $(stat -c%s "$TEMP_PATH") ]]; then
+            mv "$TEMP_PATH" "$INSTALL_PATH"
+            log_success "kind binary updated in ~/.local/bin/kind."
+        else
+            log_info "kind is already at the latest version."
+            ((SUCCESS_COUNT++))
+        fi
+        rm -rf "$TEMP_DIR"
+        return 0
+    else
+        log_error "kind download failed."
+        rm -rf "$TEMP_DIR"
+        return 1
+    fi
+}
+
+# ---------------------------------------------------------------------
+# System-Space Modules (Sudo Required)
+# ---------------------------------------------------------------------
+
+# Description: Pulls latest updates for the MineGrub theme and updates GRUB configuration.
+minegrub_u() {
+    local MINEGRUB_DIR="$HOME/.custom/minegrub-theme"
+    if [[ ! -d "$MINEGRUB_DIR" ]]; then
+        log_warn "MineGrub directory missing ($MINEGRUB_DIR). Skipping update."
+        return 0
+    fi
+
+    log_info "Updating MineGrub assets..."
+    update_git_repo "$MINEGRUB_DIR" || return 1
+    smart_run cp -ruv "$MINEGRUB_DIR/minegrub" /boot/grub/themes/
+    smart_run grub-mkconfig -o /boot/grub/grub.cfg
+    log_success "GRUB theme refreshed."
+    return 0
+}
+
+# Description: Performs firmware updates via fwupdmgr and executes system-wide APT upgrade.
+system_u() {
+    log_info "Initializing system package maintenance..."
+
+    if ! command -v apt &>/dev/null; then
+        log_error "Compatible package manager (apt) not found on this system."
+        return 1
+    fi
+
+    command -v fwupdmgr &>/dev/null && smart_run fwupdmgr update -y 2>/dev/null
+
+    log_info "Running system upgrade (APT)..."
+    if smart_run apt update && smart_run apt upgrade -y; then
+        log_success "System packages updated."
+        return 0
+    else
+        log_error "System update chain failed."
+        return 1
+    fi
+}
+
+# Description: Upgrades the Determinate Nix Engine using determinate-nixd.
+nix_engine_u() {
+    if ! command -v determinate-nixd &>/dev/null && [[ ! -x "/usr/local/bin/determinate-nixd" ]] && [[ ! -x "/nix/var/nix/profiles/default/bin/determinate-nixd" ]]; then
+        log_warn "determinate-nixd missing on host. Skipping engine upgrade."
+        return 0
+    fi
+
+    log_info "Upgrading Determinate Nix Engine..."
+    if smart_run determinate-nixd upgrade; then
+        log_success "Determinate Nix engine successfully upgraded."
+        return 0
+    else
+        log_error "Determinate Nix engine upgrade failed."
+        return 1
+    fi
+}
+
+# ---------------------------------------------------------------------
+# Main Framework Execution Engine
+# ---------------------------------------------------------------------
+
+updates() {
+    SUCCESS_COUNT=0
+    TOTAL_COUNT=0
+
+    local -a updates_user=(neovim_u beekeeper_u kind_u nerdfonts_u flatpak_u)
+    local -a updates_sudo=(system_u minegrub_u nix_engine_u)
+
+    info() {
+        echo -e "${CYAN}Available Options:${NC}"
+        echo -e "  -u, --user  Run user-space updates (~/.local/bin, fonts, etc.)"
+        echo -e "  -s, --sudo  Run system-space updates (apt, grub)"
+        echo -e "  -a, --all   Full maintenance cycle"
+        echo -e "\n${YELLOW}Available Modules:${NC}"
+        for i in "${updates_user[@]}" "${updates_sudo[@]}"; do
+            echo "  ${i%_u}"
+        done
+    }
+
+    run_updates() {
+        local type="$1"
+        local list_var="updates_$type[@]"
+        local list=("${!list_var}")
+
+        if [[ "$type" == "user" && "$EUID" -eq 0 ]]; then
+            log_error "Safety Protocol: Do not run user tasks as root."
+            return 1
+        fi
+        if [[ "$type" == "sudo" && "$EUID" -ne 0 ]] && ! has_sudo; then
+            log_error "Privilege Escalation Required for sudo tasks."
+            return 1
+        fi
+
+        echo -e "${PURPLE}=== Launching $type Update Sequence ===${NC}"
+        for func in "${list[@]}"; do
+            ((TOTAL_COUNT++))
+            log_task "${func%_u}"
+            "$func" || log_error "Module '${func%_u}' returned an error."
+        done
+    }
+
+    [[ "$#" -eq 0 ]] && { info; return 0; }
+
+    case "$1" in
+        -u | --user)
+            run_updates "user"
+            ;;
+        -s | --sudo)
+            run_updates "sudo"
+            ;;
+        -a | --all)
+            if [[ "$EUID" -eq 0 ]]; then
+                run_updates "sudo"
+            else
+                run_updates "user"
+                has_sudo && run_updates "sudo" || log_warn "Sudo sequence skipped (insufficient privileges)."
+            fi
+            ;;
+        -h | --help)
+            info
+            return 0
+            ;;
+        *)
+            for arg in "$@"; do
+                if [[ "$arg" == -* ]]; then
+                    log_error "Unknown option: $arg"
+                    return 1
+                fi
+                local func="${arg}_u"
+                if declare -f "$func" >/dev/null; then
+                    if [[ " ${updates_sudo[*]} " =~ " $func " ]] && [[ "$EUID" -ne 0 ]] && ! has_sudo; then
+                        log_error "Task '$arg' requires sudo privileges."
+                    else
+                        ((TOTAL_COUNT++))
+                        "$func" || log_error "Manual task '$arg' failed."
+                    fi
+                else
+                    log_error "Unknown task: $arg"
+                    return 1
+                fi
+            done
+            ;;
+    esac
+
+    echo -e "\n${CYAN}Update Cycle Completed${NC}"
+    echo -e "Tasks attempted: $TOTAL_COUNT | Successful modules: $SUCCESS_COUNT"
+}
+
+# Prevent execution when sourced; run automatically if executed directly
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+    updates "$@"
+fi
