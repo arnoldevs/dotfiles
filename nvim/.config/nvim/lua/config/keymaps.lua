@@ -1,38 +1,59 @@
 -- =====================================================================
--- Global Keymaps
--- Utility mappings for navigation, editing, visual mode, and UI.
+-- Global Keymaps Configuration
+-- General utility mappings for UI, navigation, editing, and visual mode.
 -- =====================================================================
 
 local function map(mode, lhs, rhs, desc)
-vim.keymap.set(mode, lhs, rhs, { silent = true, desc = desc })
+  vim.keymap.set(mode, lhs, rhs, { silent = true, desc = desc })
 end
 
--- Clear search highlights on pressing <Esc>
+-- ---------------------------------------------------------------------
+-- UI & General Operations
+-- ---------------------------------------------------------------------
+
+-- Clear search highlights
 map("n", "<Esc>", "<cmd>nohlsearch<cr>", "Clear search highlights")
 
--- Window navigation
+-- Fast file save and quit
+map("n", "<leader>w", "<cmd>w<cr>", "Save file")
+map("n", "<leader>q", "<cmd>q<cr>", "Quit window")
+
+-- Universal save shortcut across Normal, Insert, and Visual modes
+map({ "n", "i", "v" }, "<C-s>", "<cmd>w<cr>", "Save file")
+
+-- ---------------------------------------------------------------------
+-- Window & Navigation Controls
+-- ---------------------------------------------------------------------
+
+-- Window focus switching
 map("n", "<C-h>", "<C-w>h", "Focus left window")
 map("n", "<C-j>", "<C-w>j", "Focus lower window")
 map("n", "<C-k>", "<C-w>k", "Focus upper window")
 map("n", "<C-l>", "<C-w>l", "Focus right window")
 
--- Fast save and quit
-map("n", "<leader>w", "<cmd>w<cr>", "Save file")
-map("n", "<leader>q", "<cmd>q<cr>", "Quit window")
+-- Centered half-page scrolling
+map("n", "<C-d>", "<C-d>zz", "Scroll down and center cursor")
+map("n", "<C-u>", "<C-u>zz", "Scroll up and center cursor")
 
--- Center cursor during half-page scrolling and search navigation
-map("n", "<C-d>", "<C-d>zz", "Scroll down and center")
-map("n", "<C-u>", "<C-u>zz", "Scroll up and center")
+-- Centered search navigation
 map("n", "n", "nzzzv", "Next search match (centered)")
 map("n", "N", "Nzzzv", "Previous search match (centered)")
 
--- Indentation preservation in Visual mode
+-- ---------------------------------------------------------------------
+-- Line & Text Manipulation
+-- ---------------------------------------------------------------------
+
+-- Move single lines or selections up/down (Alt + j/k in N, I, V)
+map("n", "<A-j>", "<cmd>m .+1<cr>==", "Move line down")
+map("n", "<A-k>", "<cmd>m .-2<cr>==", "Move line up")
+map("i", "<A-j>", "<cmd>m .+1<cr>==gi", "Move line down")
+map("i", "<A-k>", "<cmd>m .-2<cr>==gi", "Move line up")
+map("v", "<A-j>", ":m '>+1<cr>gv=gv", "Move selection down")
+map("v", "<A-k>", ":m '<-2<cr>gv=gv", "Move selection up")
+
+-- Preserve visual selection during re-indentation
 map("v", "<", "<gv", "Indent left and keep selection")
 map("v", ">", ">gv", "Indent right and keep selection")
 
--- Move selected lines up and down
-map("v", "J", ":m '>+1<cr>gv=gv", "Move selection down")
-map("v", "K", ":m '<-2<cr>gv=gv", "Move selection up")
-
--- Paste over selection without replacing the paste buffer
+-- Paste over selection without overwriting default register
 map("x", "<leader>p", [["_dP]], "Paste without overwriting register")
