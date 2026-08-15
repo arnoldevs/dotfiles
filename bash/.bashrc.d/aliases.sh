@@ -36,16 +36,16 @@ alias egrep='grep -E --color=auto'
 # ---------------------------------------------------------------------
 # Modern CLI Replacements
 # ---------------------------------------------------------------------
-# LSD: Next-generation ls command with colors and icons
-if command -v lsd &>/dev/null; then
-    alias ls='lsd --group-dirs=first'
-    alias l='lsd'
-    alias ll='lsd -l --group-dirs=first'
-    alias la='lsd -a'
-    alias lla='lsd -la --group-dirs=first'
-    alias lt='lsd --tree'
+# EZA: ls command with colors and icons
+if command -v eza &>/dev/null; then
+    alias ls='eza --group-directories-first --icons'
+    alias l='eza --icons'
+    alias ll='eza -l --group-directories-first --icons'
+    alias la='eza -a --icons'
+    alias lla='eza -la --group-directories-first --icons'
+    alias lt='eza --tree --icons'
 else
-    # Fallback to standard GNU ls if lsd is not installed
+    # Fallback to standard GNU ls if eza is not installed
     alias ls='ls --color=auto'
     alias l='ls -CF'
     alias ll='ls -lh'
