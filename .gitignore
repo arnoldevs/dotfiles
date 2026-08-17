@@ -2,25 +2,35 @@
 *.bak
 *~
 *.swp
+*.swo
 *.tmp
 
+# --- NIX BUILD RESULTS ---
+result
+result-*
+
 # --- PRIVATE & HOST-SPECIFIC CONFIGURATIONS ---
-.bashrc.local
-*.local.sh
+*.local
+# Exception: Do not ignore .local directories required by Stow structure
+!**/.local/
+*.local.*
+**/.bashrc.local
+**/*.local.sh
 
 # --- DYNAMIC & RUNTIME GENERATED THEMES ---
 # Bash
-**/.bashrc.d/colors.sh
+bash/.bashrc.d/colors.sh
 
-# Kitty
-kitty/current-theme.conf
-kitty/theme.conf
+# Kitty (Using ** to match whether it's in 'archive/' or a future 'kitty/' stow package)
+**/kitty/current-theme.conf
+**/kitty/theme.conf
+**/kitty/**/*.bak
 
 # Sway
-sway/config.d/90-sway-colors.conf
+**/sway/config.d/90-sway-colors.conf
 
 # Cava
-cava/shaders/
+cava/.config/cava/shaders/
 
 # --- OS GENERATED FILES ---
 .DS_Store
