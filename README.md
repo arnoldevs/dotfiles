@@ -1,180 +1,125 @@
 # 🛠️ System Dotfiles & Development Ecosystem
 
-Ecosistema de configuración modular enfocado en rendimiento, reproducibilidad y desarrollo aislado utilizando **Debian**, **Neovim (LazyVim)**, **Nix (Flakes + Direnv)** y **WezTerm**.
+Modular configuration ecosystem optimized for **Debian 13 (Trixie)** running on Btrfs + LUKS. Focused on performance, reproducibility, and isolated development using **Neovim**, **Nix (Flakes + Direnv)**, and **WezTerm**.
+
+## 📋 Table of Contents
+- [Overview](#-overview)
+- [Prerequisites](#-prerequisites)
+- [Deployment](#-deployment)
+- [Core Architecture](#-core-architecture)
+- [Maintenance Engine](#️-maintenance-engine)
+- [Neovim IDE Architecture](#-neovim-ide-architecture)
+- [Nix Environments](#-nix-environments)
 
 ---
 
-## 📋 Tabla de Contenidos
+## 🥊 Overview
 
-- [Vista General](#-vista-general)
-- [Prerrequisitos del Sistema](#-prerrequisitos-del-sistema)
-  - [Paquetes Base](#paquetes-base)
-  - [Nix (Determinate Systems)](#nix-determinate-systems)
-  - [Nerd Fonts](#-fuentes-nerd-fonts)
-  - [WezTerm](#-emulador-de-terminal-wezterm)
-- [Estructura del Repositorio](#-estructura-del-repositorio)
-- [Instalación y Despliegue](#-instalación-y-despliegue)
-- [Componentes Principales](#-componentes-principales)
-  - [Terminal & Shell (WezTerm + Bash)](#terminal--shell-wezterm--bash)
-  - [Editor de Texto (Neovim / LazyVim)](#editor-de-texto-neovim--lazyvim)
-  - [Entornos de Desarrollo (Nix + Direnv)](#entornos-de-desarrollo-nix--direnv)
-- [Mantenimiento y Comandos Útiles](#-mantenimiento-y-comandos-útiles)
+- **Clean `$HOME`:** Massive redirection of application caches via XDG standards, injected dynamically per project environment.
+- **Isolated Runtimes:** Nix Flakes + Direnv manage toolchains (LSPs, formatters, compilers) without polluting the global OS.
+- **Modular Bash:** Configurations are split into isolated `.sh` modules (`aliases`, `env`, `keybindings`, `themes`, `updates`) executed by `~/.bashrc`.
 
 ---
 
-## 🥊 Vista General
+## 🧰 Prerequisites
 
-Este repositorio gestiona el entorno de desarrollo bajo los siguientes principios:
-
-* **Persistencia limpia (XDG Spec):** Redirección masiva de cachés (`.cache/cargo`, `.cache/m2`, `.cache/go`, etc.) para mantener `$HOME` despejado.
-* **Desarrollo inmutable por proyecto:** Nix Flakes + Direnv gestionan LSPs, formateadores y toolchains sin contaminar la instalación global del sistema operativo.
-* **Flujo de trabajo optimizado:** Neovim integrado con binarios locales heredados del entorno del shell (`PATH`), sin dependencia de gestores de binarios de terceros dentro del editor.
-
----
-
-## 🧰 Prerrequisitos del Sistema
-
-### Paquetes Base
-
-Instala las herramientas fundamentales antes de desplegar las configuraciones:
+### 1. Base System & Modern CLI
+Install fundamental tools, container engines, and Rust-based alternatives via Debian APT:
 
 ```bash
 sudo apt update && sudo apt install -y \
-    git \
-    curl \
-    build-essential \
-    unzip \
-    ripgrep \
-    fd-find \
-    fzf \
-    stow
+    git curl build-essential unzip ripgrep fd-find fzf stow direnv \
+    eza bat zoxide podman starship
 ```
+> **Note:** This environment explicitly tracks the Debian Trixie Stable. Here `bat` is installed as `batcat` (automatically handled by the aliases module).
 
-### Nix (Determinate Systems)
-
-Se utiliza el instalador de **Determinate Systems** por su estabilidad, gestión automática de servicios y soporte nativo habilitado para Flakes:
-
+### 2. External Binaries
+**Nix Package Manager (Determinate Systems):**
 ```bash
-curl --proto '=https' --tlsv1.2 -sSf https://install.determinate.systems/nix | sh -- daemon-install
+curl --proto '=https' --tlsv1.2 -sSf [https://install.determinate.systems/nix](https://install.determinate.systems/nix) | sh -- daemon-install
 ```
-
-> **Nota:** Este instalador habilita automáticamente `nix-command` y `flakes`, por lo que no requiere configuración adicional en `nix.conf`.
-
-### 🔤 Fuentes (Nerd Fonts)
-
-Para la correcta visualización de iconos y símbolos en la terminal y el editor (Neovim, status de Git, árboles de archivos), se requiere una fuente parcheada de **Nerd Fonts**:
-
-```bash
-mkdir -p ~/.local/share/fonts
-cd /tmp
-curl -fLO https://github.com/ryanoasis/nerd-fonts/releases/latest/download/JetBrainsMono.zip
-unzip JetBrainsMono.zip -d ~/.local/share/fonts/
-rm JetBrainsMono.zip
-fc-cache -fv
-```
-
-### 🖥️ Emulador de Terminal (WezTerm)
-
-WezTerm provee aceleración por GPU, verdadero color (24-bit) y configuración programable en Lua:
-
-```bash
-# Agregar repositorio oficial e instalar en Debian
-curl -fsSL https://apt.fury.io/wez/gpg.key | sudo gpg --yes --dearmor -o /etc/apt/keyrings/wezterm-archive-keyring.gpg
-echo "deb [signed-by=/etc/apt/keyrings/wezterm-archive-keyring.gpg] https://apt.fury.io/wez/ * *" | sudo tee /etc/apt/sources.list.d/wezterm.list
-
-sudo apt update && sudo apt install wezterm
-```
+*(Note: Nix installer telemetry is explicitly disabled via `DETSYS_IDS_TELEMETRY=disabled` in the environment for privacy).*
 
 ---
 
-## 📁 Estructura del Repositorio
+## 🚀 Deployment
 
-```text
-.
-├── .config/
-│   ├── nvim/             # Configuración modular de Neovim (LazyVim base)
-│   │   ├── init.lua
-│   │   └── lua/
-│   │       ├── config/   # Opciones, keymaps y autocomandos
-│   │       └── plugins/  # Especificaciones de plugins (LSP, UI, Tools)
-│   ├── wezterm/          # Configuración de WezTerm (wezterm.lua)
-│   └── nix/              # Configuraciones globales de Nix
-├── .bashrc               # Shell rc con alias, exports XDG y hooks (direnv)
-├── templates/            # Plantillas de Nix Flakes para proyectos
-│   ├── multi-lang/       # Flake laboratorio (Java, Go, Rust, Python, TS, Lua, Shell)
-│   └── java-spring/      # Flake dedicado a Java 21 + Spring Boot + Gradle/Maven
-└── README.md
-```
-
----
-
-## 🚀 Instalación y Despliegue
-
-### 1. Clonar el Repositorio
-
-```bash
-git clone https://github.com/TU_USUARIO/dotfiles.git ~/.dotfiles
-cd ~/.dotfiles
-```
-
-### 2. Crear Enlaces Simbólicos (Symlinks)
-
-Puedes utilizar GNU `stow` o enlazar los directorios manualmente:
-
-```bash
-# Mediante enlaces simbólicos directos:
-ln -sfn ~/.dotfiles/.config/nvim ~/.config/nvim
-ln -sfn ~/.dotfiles/.config/wezterm ~/.config/wezterm
-ln -sf ~/.dotfiles/.bashrc ~/.bashrc
-
-# Recargar configuración de Bash
-source ~/.bashrc
-```
-
----
-
-## 🧩 Componentes Principales
-
-### Terminal & Shell (WezTerm + Bash)
-
-* **WezTerm:** Mapeo de portapapeles, fuentes de alta densidad y renderizado asistido por GPU.
-* **Bash:** Configurado con variables XDG globales para aislamiento de cachés:
-  * `GOPATH` / `GOCACHE` $\rightarrow$ `$XDG_CACHE_HOME/go`
-  * `CARGO_HOME` $\rightarrow$ `$XDG_CACHE_HOME/cargo`
-  * `PIP_CACHE_DIR` $\rightarrow$ `$XDG_CACHE_HOME/pip`
-  * `MAVEN_OPTS` $\rightarrow$ `-Dmaven.repo.local=$XDG_CACHE_HOME/m2`
-
-### Editor de Texto (Neovim / LazyVim)
-
-Configuración orientada a integrarse con herramientas declaradas en el sistema o en el shell de Nix:
-
-* **LSP (`nvim-lspconfig`):** Configurado nativamente utilizando `vim.lsp.config` sin dependencia de gestores de binarios externos.
-* **Formateo (`conform.nvim`):** Detección dinámica de ejecutables en el `PATH` (`stylua`, `prettierd`, `google-java-format`, `ruff`, `shfmt`).
-* **Sintaxis (`nvim-treesitter`):** Manejo de parsers de sintaxis integrados.
-* **UI/Utilidades (`snacks.nvim`):** Gestión eficiente de buffers, terminales flotantes y notificaciones.
-
-### Entornos de Desarrollo (Nix + Direnv)
-
-Para iniciar un proyecto con LSPs y herramientas aisladas:
-
-1. **Copiar plantilla al proyecto objetivo:**
+1. **Clone the Repository:**
    ```bash
-   cp -r ~/.dotfiles/templates/multi-lang/flake.nix ./
+   git clone https://github.com/arnoldevs/dotfiles.git ~/.dotfiles
+   cd ~/.dotfiles
    ```
-2. **Crear o actualizar `.envrc`:**
+
+2. **Link Configurations (GNU Stow):**
    ```bash
-   echo "use flake" > .envrc
-   direnv allow
+   stow bash nvim wezterm bin starship cava
+   source ~/.bashrc
    ```
-3. Al entrar al directorio, `direnv` cargará automáticamente los ejecutables (`pyright`, `gopls`, `rust-analyzer`, `jdtls`, etc.) en el `PATH`, haciendo que Neovim los reconozca de manera automática.
+
+3. **Bootstrap User Space (The Magic Step):**
+   Execute the built-in maintenance engine to automatically download and seamlessly integrate user binaries (**Neovim**, **Nerd Fonts**, **Beekeeper Studio**, **Kind**) into `~/.local`:
+   ```bash
+   updates -u
+   ```
 
 ---
 
-## ⚙️ Mantenimiento y Comandos Útiles
+## 🧩 Core Architecture
 
-| Acción | Comando |
+### Terminal & CLI (WezTerm + Bash)
+- **Aliases:** `ls` → `eza`, `cat` → `batcat`. Core utilities (`rm`, `cp`, `mv`) are aliased to their interactive modes to prevent data loss.
+- **Dynamic Theming:** Adapts `bat` and `fzf` color schemes to Gruvbox (dark or light) based on the terminal's `$WEZTERM_THEME_MODE` environment variable.
+- **Keybindings:**
+  - <kbd>Esc</kbd> <kbd>Esc</kbd>: Instantly toggles `sudo ` at the beginning of the current (or previous) command.
+  - <kbd>Alt</kbd> + <kbd>v</kbd>: Appends ` | nvim -` to pipe the standard output of any CLI tool directly into Neovim.
+
+### Containerization (Podman)
+- **Rootless Podman** serves as a drop-in replacement for Docker.
+- Ecosystem compatibility (e.g., Docker Compose) is maintained by automatically routing `$DOCKER_HOST` to the Podman UNIX socket.
+- **Kind** (Kubernetes in Docker) is forced to use the Podman backend via `$KIND_EXPERIMENTAL_PROVIDER=podman`.
+
+---
+
+## ⚙️ Maintenance Engine (`updates`)
+
+A robust, custom Bash orchestrator (`~/.bashrc.d/updates.sh`) handles atomic upgrades and system maintenance.
+> ⚠️ **Scope:** This framework is designed strictly for **updating an existing installation**. It is not an initial OS installation script.
+
+| Command | Description |
 | :--- | :--- |
-| **Actualizar plugins de Neovim** | Abrir `nvim` y ejecutar `:Lazy update` |
-| **Limpiar caché/basura de Nix** | `nix-store --gc` / `nix-collect-garbage -d` |
-| **Actualizar locks de Flakes** | `nix flake update` *(dentro del directorio del proyecto)* |
-| **Verificar estado de Direnv** | `direnv status` |
+| `updates -u` | **User-space Updates:** Safely updates applications without root (Neovim release binary, Beekeeper Studio AppImage, Kind CLI, Flatpaks, and Nerd Fonts). |
+| `updates -s` | **System-space Updates:** Executes root-level upgrades (APT packages, fwupdmgr, Determinate Nix Engine, and MineGrub themes). |
+| `updates -a` | **Full Sequence:** Runs all user and system modules sequentially. |
+
+---
+
+## 📝 Neovim IDE Architecture
+
+Configured as the primary development environment, this setup is built on top of **LazyVim** but heavily customized into a granular, modular plugin structure (`lua/config/plugins/`). It acts as the interactive frontend for the toolchains dynamically injected by Nix and Direnv.
+
+### Key Capabilities
+
+* **Database Management (`dadbod.lua`):** Provides a native, in-editor UI for database interaction. It seamlessly consumes the isolated `psql` and `mysql` binaries provided by the project's Nix flakes.
+* **Enterprise Java Integration (`java.lua` & `dap.lua`):** Fully configured Debug Adapter Protocol (DAP) and JDTLS integrations tailored for Spring Boot development and testing.
+* **Filesystem as a Buffer (`oil.lua`):** Allows editing the directory structure directly as a standard Neovim text buffer, streamlining file operations.
+* **Formatting & Diagnostics (`conform.lua`, `lsp.lua`, `trouble.lua`):** Handshakes directly with the isolated language servers and formatters (like Prettier, Google Java Format, and Ruff) spun up by the active project environment.
+* **Modern UI & Utilities (`snacks.lua`, `lualine.lua`, `bufferline.lua`):** Enhances the visual feedback loop with optimized status lines and modern Neovim utility collections.
+
+> **💡 Custom Keymaps:** A comprehensive breakdown of all custom shortcuts and leader-key bindings is maintained locally in `nvim/.config/nvim/KEYMAPS.md`. The entire environment is strictly keyboard-centric, rewarding touch typing optimization and muscle memory by keeping hands firmly on the home row.
+
+---
+
+## 🧬 Nix Environments (`templates/`)
+
+Project-level isolation is handled natively by Nix Flakes (`flake.nix`). To initialize, simply copy the desired template and run `echo "use flake" > .envrc && direnv allow`. 
+
+XDG cache variables (like `$GOPATH`, `$CARGO_HOME`, `$PIP_CACHE_DIR`, and `$MAVEN_OPTS`) are **injected dynamically via `shellHook`** only when a project is active, leaving the base system entirely clean.
+
+### ☕ `java-spring`
+- **Runtime & Build:** JDK 21, Maven, Gradle, Spring Boot CLI.
+- **IDE Tooling:** Includes JDTLS, Google Java Format, Lombok, YAML/XML LSPs, and Neovim DAP bundles (`vscode-java-debug`, `vscode-java-test`).
+- **Database CLI:** Embeds `psql` and `mysql` binaries for seamless Neovim `vim-dadbod` integration without host installation.
+
+### 🧪 `multi-lang`
+- **Polyglot Lab:** Complete LSPs, formatters, and linters for Nix, Java, Node.js, Python (`pyright`, `ruff`), Go, Rust, Bash, and Lua.
+- **Python Isolation:** Automatically crafts a `.build/pip` directory to encapsulate dependencies directly inside the project tree.
